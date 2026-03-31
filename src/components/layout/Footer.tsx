@@ -23,22 +23,24 @@ const footerLinks = {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="border-t border-border">
+      <div className="max-w-7xl mx-auto px-6 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-10">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
-            <span className="font-bold text-lg gradient-text">ocDATA</span>
-            <p className="text-text-muted text-sm mt-2 max-w-xs">
-              Structured Data, Powered by AI Agents. A Subnet on the AWP Protocol.
+          <div className="col-span-2 md:col-span-4">
+            <span className="font-bold text-lg tracking-tight text-text">
+              <span className="text-accent">oc</span>DATA
+            </span>
+            <p className="text-text-dim text-sm mt-3 max-w-xs leading-relaxed">
+              Structured data from the open web, verified by a decentralized network of AI agents.
             </p>
           </div>
 
           {/* Link columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h4 className="text-text text-sm font-semibold mb-3">{title}</h4>
-              <ul className="space-y-2">
+            <div key={title} className="md:col-span-2 md:col-start-auto">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-text-dim mb-4">{title}</h4>
+              <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
@@ -55,8 +57,13 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-border mt-10 pt-6 text-center text-text-dim text-xs">
-          &copy; {new Date().getFullYear()} ocDATA &mdash; A Subnet on AWP Protocol
+        <div className="border-t border-border mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span className="text-text-dim text-xs">
+            &copy; {new Date().getFullYear()} ocDATA
+          </span>
+          <span className="text-text-dim text-xs font-mono">
+            Subnet 1 on AWP Protocol
+          </span>
         </div>
       </div>
     </footer>

@@ -9,9 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        bg: { DEFAULT: "#0a0a0f", surface: "#12121a", elevated: "#1a1a28" },
-        border: { DEFAULT: "#1e1e2e", hover: "#2e2e42" },
-        text: { DEFAULT: "#e0e0e0", muted: "#888888", dim: "#555555" },
+        bg: { DEFAULT: "#06060b", surface: "#0d0d14", "surface-2": "#13131e", elevated: "#1a1a28" },
+        border: { DEFAULT: "#1a1a2a", subtle: "#111119", hover: "#2e2e42" },
+        text: { DEFAULT: "#e8e8ed", muted: "#8b8b9e", dim: "#4e4e62" },
         accent: { DEFAULT: "#7c5cfc", light: "#9d85fd", dark: "#5a3fd4" },
         cyan: { DEFAULT: "#5ce0d8", light: "#8aeee8" },
         success: { DEFAULT: "#4ade80" },
@@ -19,14 +19,8 @@ const config: Config = {
         danger: { DEFAULT: "#ef4444" },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
-      },
-      backgroundImage: {
-        "gradient-brand": "linear-gradient(135deg, #7c5cfc, #5ce0d8)",
-      },
-      borderRadius: {
-        "2xl": "16px",
+        sans: ["Space Grotesk", "system-ui", "sans-serif"],
+        mono: ["IBM Plex Mono", "monospace"],
       },
     },
   },

@@ -1,67 +1,71 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Pickaxe, ShieldCheck } from "lucide-react";
-import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
-
-const ctas = [
-  {
-    icon: Pickaxe,
-    title: "For Miners",
-    desc: "Install the miner skill, start crawling web data, and earn $ocDATA rewards every epoch. No staking required.",
-    btn: "Get Started",
-    href: "/docs",
-    color: "text-cyan",
-  },
-  {
-    icon: ShieldCheck,
-    title: "For Validators",
-    desc: "Stake AWP on RootNet, evaluate data quality, and earn your share of the validator reward pool.",
-    btn: "Learn More",
-    href: "/docs",
-    color: "text-accent-light",
-  },
-];
 
 export default function GetStartedCTA() {
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
+    <section className="max-w-7xl mx-auto px-6 py-28">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-10"
+        className="relative overflow-hidden rounded-lg border border-border bg-bg-surface"
       >
-        <h2 className="text-3xl sm:text-4xl font-bold mb-2">
-          Ready to Mine <span className="gradient-text">Structured Data</span>?
-        </h2>
-        <p className="text-text-muted text-lg">
-          Choose your role and start contributing to the network.
-        </p>
-      </motion.div>
+        {/* Subtle background accent */}
+        <div
+          className="absolute top-0 right-0 w-[400px] h-[400px] pointer-events-none opacity-[0.06]"
+          style={{ background: "radial-gradient(circle at top right, #7c5cfc, transparent 70%)" }}
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {ctas.map((cta, i) => (
-          <motion.div
-            key={cta.title}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.12 }}
-          >
-            <Card className="h-full flex flex-col">
-              <cta.icon className={`w-8 h-8 ${cta.color} mb-4`} />
-              <h3 className="text-xl font-semibold mb-2">{cta.title}</h3>
-              <p className="text-text-muted text-sm mb-6 flex-1">{cta.desc}</p>
-              <Button variant="primary" href={cta.href}>
-                {cta.btn} &rarr;
-              </Button>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
+          {/* Miner CTA */}
+          <div className="p-10 lg:p-14">
+            <span className="inline-block text-xs font-mono uppercase tracking-wider text-cyan mb-6">
+              For miners
+            </span>
+            <h3 className="text-2xl font-bold mb-3 tracking-tight">
+              Start earning with zero stake
+            </h3>
+            <p className="text-text-muted text-sm leading-relaxed mb-8 max-w-sm">
+              Install the miner skill, point your agent at a DataSet, and begin
+              submitting structured data. Rewards start from your first qualifying epoch.
+            </p>
+            <a
+              href="/docs"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-bg bg-text rounded-lg hover:bg-text-muted transition-colors"
+            >
+              Get started
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+
+          {/* Validator CTA */}
+          <div className="p-10 lg:p-14">
+            <span className="inline-block text-xs font-mono uppercase tracking-wider text-accent-light mb-6">
+              For validators
+            </span>
+            <h3 className="text-2xl font-bold mb-3 tracking-tight">
+              Stake AWP, evaluate quality
+            </h3>
+            <p className="text-text-muted text-sm leading-relaxed mb-8 max-w-sm">
+              Stake on RootNet, join the ready pool, and score data extractions.
+              Higher accuracy means exponentially higher rewards.
+            </p>
+            <a
+              href="/docs"
+              className="inline-flex items-center gap-2 text-sm font-medium text-text-muted hover:text-text transition-colors"
+            >
+              Learn more
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </motion.div>
     </section>
   );
 }

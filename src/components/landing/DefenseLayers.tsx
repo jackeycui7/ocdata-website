@@ -1,69 +1,102 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { RefreshCw, ClipboardCheck, Eye, Users } from "lucide-react";
-import Card from "@/components/ui/Card";
 
 const layers = [
   {
-    num: 1,
-    icon: RefreshCw,
-    title: "Phase A: Repeat Crawl",
-    desc: "Independent miners re-crawl the same URL to verify data authenticity via text similarity.",
-    color: "text-cyan",
+    id: "A",
+    title: "Repeat Crawl",
+    phase: "Phase A",
+    desc: "An independent miner re-crawls the same URL. Text similarity ≥ 75% confirms authenticity.",
+    metric: "1.15 crawls/sample",
+    status: "Authenticity",
   },
   {
-    num: 2,
-    icon: ClipboardCheck,
-    title: "Phase B: Quality Eval",
-    desc: "Validators assess structured data extraction quality against the verified cleaned data.",
-    color: "text-accent-light",
+    id: "B",
+    title: "Quality Eval",
+    phase: "Phase B",
+    desc: "Validators score structured extraction quality against the verified cleaned data.",
+    metric: "4 dimensions scored",
+    status: "Quality",
   },
   {
-    num: 3,
-    icon: Eye,
+    id: "G",
     title: "Golden Task",
-    desc: "Secret pre-labeled test tasks are mixed in to catch lazy or dishonest validators.",
-    color: "text-warn",
+    phase: "Layer 3",
+    desc: "Pre-labeled test tasks mixed into the evaluation stream. Validators can't distinguish them.",
+    metric: "5–40% of tasks",
+    status: "Honesty",
   },
   {
-    num: 4,
-    icon: Users,
+    id: "P",
     title: "Peer Review",
-    desc: "5-validator consensus on 10% of tasks aligns scoring standards across the network.",
-    color: "text-success",
+    phase: "Layer 4",
+    desc: "Five validators independently score the same task. Median consensus aligns standards.",
+    metric: "10% of evaluations",
+    status: "Calibration",
   },
 ];
 
 export default function DefenseLayers() {
   return (
-    <section className="max-w-6xl mx-auto px-4 sm:px-6 py-20">
-      <h2 className="text-3xl sm:text-4xl font-bold mb-2">Four-Layer Defense</h2>
-      <p className="text-text-muted text-lg mb-10">
-        A layered verification system ensures only authentic, high-quality data enters the network.
-      </p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {layers.map((layer, i) => (
+    <section className="max-w-7xl mx-auto px-6 py-28">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <div className="lg:col-span-4">
           <motion.div
-            key={layer.num}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.1 }}
+            transition={{ duration: 0.5 }}
           >
-            <Card className="h-full">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-7 h-7 rounded-lg bg-gradient-brand flex items-center justify-center text-white text-xs font-bold">
-                  {layer.num}
-                </span>
-                <layer.icon className={`w-5 h-5 ${layer.color}`} />
-              </div>
-              <h3 className="text-sm font-semibold mb-2">{layer.title}</h3>
-              <p className="text-text-muted text-xs leading-relaxed">{layer.desc}</p>
-            </Card>
+            <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Verification</span>
+            <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">
+              Four layers
+              <br />
+              of defense
+            </h2>
+            <p className="text-text-muted leading-relaxed max-w-sm">
+              Every piece of data is verified before it enters the network.
+              Cheating is expensive, honesty is rewarded.
+            </p>
           </motion.div>
-        ))}
+        </div>
+
+        <div className="lg:col-span-8">
+          <div className="space-y-3">
+            {layers.map((layer, i) => (
+              <motion.div
+                key={layer.id}
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                className="group"
+              >
+                <div className="bg-bg-surface rounded-lg p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 hover:bg-bg-surface-2 transition-colors">
+                  {/* ID badge */}
+                  <div className="shrink-0 w-10 h-10 rounded-md bg-accent/10 flex items-center justify-center font-mono text-sm font-semibold text-accent">
+                    {layer.id}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="font-semibold text-base">{layer.title}</h3>
+                      <span className="text-[10px] font-mono text-text-dim uppercase tracking-wider">{layer.phase}</span>
+                    </div>
+                    <p className="text-text-muted text-sm">{layer.desc}</p>
+                  </div>
+
+                  {/* Right meta */}
+                  <div className="shrink-0 text-right hidden md:block">
+                    <div className="text-xs font-mono text-text-dim">{layer.metric}</div>
+                    <div className="text-[10px] font-mono text-accent-light uppercase tracking-wider mt-1">{layer.status}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
