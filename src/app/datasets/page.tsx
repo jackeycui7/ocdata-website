@@ -1,14 +1,15 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { mockDatasets, formatNumber } from "@/lib/mock";
+import { formatNumber } from "@/lib/mock";
+import { loadDatasets } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const maxEntries = Math.max(...mockDatasets.map((d) => d.entries));
+export const revalidate = 30;
 
-export default function DatasetsPage() {
+export default async function DatasetsPage() {
+  const datasets = await loadDatasets();
+  const maxEntries = Math.max(...datasets.map((d) => d.entries), 1);
+
   return (
     <>
       <Navbar />
@@ -30,7 +31,6 @@ export default function DatasetsPage() {
             </Link>
           </div>
 
-          {/* Table */}
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs font-mono uppercase tracking-wider text-text-dim border-b border-border bg-bg-surface">
               <div className="col-span-3">Name</div>
@@ -41,38 +41,30 @@ export default function DatasetsPage() {
               <div className="col-span-4 sm:col-span-2 text-right">Refresh</div>
             </div>
 
-            {mockDatasets.map((ds, i) => (
-              <motion.div
+            {datasets.map((ds) => (
+              <Link
                 key={ds.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
+                href={`/datasets/${ds.id}`}
+                className="grid grid-cols-12 gap-4 px-6 py-4 items-center border-b border-border-subtle last:border-b-0 hover:bg-bg-surface transition-colors group"
               >
-                <Link
-                  href={`/datasets/${ds.id}`}
-                  className="grid grid-cols-12 gap-4 px-6 py-4 items-center border-b border-border-subtle last:border-b-0 hover:bg-bg-surface transition-colors group"
-                >
-                  <div className="col-span-3">
-                    <div className="text-sm font-medium group-hover:text-accent transition-colors">{ds.name}</div>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-success" />
-                      <span className="text-[10px] font-mono text-text-dim uppercase">{ds.status}</span>
-                    </div>
+                <div className="col-span-3">
+                  <div className="text-sm font-medium group-hover:text-accent transition-colors">{ds.name}</div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                    <span className="text-[10px] font-mono text-text-dim uppercase">{ds.status}</span>
                   </div>
-                  <div className="col-span-2 font-mono text-xs text-text-muted truncate">
-                    {ds.domains[0]}
+                </div>
+                <div className="col-span-2 font-mono text-xs text-text-muted truncate">{ds.domains[0]}</div>
+                <div className="col-span-3 hidden sm:flex items-center gap-3">
+                  <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-accent/40" style={{ width: `${(ds.entries / maxEntries) * 100}%` }} />
                   </div>
-                  <div className="col-span-3 hidden sm:flex items-center gap-3">
-                    <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-accent/40" style={{ width: `${(ds.entries / maxEntries) * 100}%` }} />
-                    </div>
-                    <span className="font-mono text-xs text-text-muted tabular-nums w-14 text-right">{formatNumber(ds.entries)}</span>
-                  </div>
-                  <div className="col-span-1 hidden md:block font-mono text-xs text-text-muted tabular-nums">{ds.miners}</div>
-                  <div className="col-span-1 hidden md:block font-mono text-xs text-text-muted tabular-nums">{ds.fields}</div>
-                  <div className="col-span-4 sm:col-span-2 font-mono text-xs text-text-dim text-right">{ds.refresh}</div>
-                </Link>
-              </motion.div>
+                  <span className="font-mono text-xs text-text-muted tabular-nums w-14 text-right">{formatNumber(ds.entries)}</span>
+                </div>
+                <div className="col-span-1 hidden md:block font-mono text-xs text-text-muted tabular-nums">{ds.miners}</div>
+                <div className="col-span-1 hidden md:block font-mono text-xs text-text-muted tabular-nums">{ds.fields}</div>
+                <div className="col-span-4 sm:col-span-2 font-mono text-xs text-text-dim text-right">{ds.refresh}</div>
+              </Link>
             ))}
           </div>
         </div>

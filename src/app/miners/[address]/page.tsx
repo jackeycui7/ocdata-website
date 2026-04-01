@@ -1,20 +1,22 @@
-"use client";
-
-import { mockMiners, shortenAddress, TIERS, getTier, mockEpochs, formatNumber } from "@/lib/mock";
+import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
+import { loadMiners, loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
 
-export default function MinerDetailPage({ params }: { params: { address: string } }) {
-  const miner = mockMiners.find((m) => m.address === decodeURIComponent(params.address));
+export const revalidate = 30;
+
+export default async function MinerDetailPage({ params }: { params: { address: string } }) {
+  const miners = await loadMiners();
+  const miner = miners.find((m) => m.address === decodeURIComponent(params.address));
   if (!miner) return notFound();
 
   const tier = getTier(miner.credit);
   const t = TIERS[tier];
   const qualified = miner.taskCount >= 80 && miner.avgScore >= 60;
+  const epochs = await loadEpochs();
 
-  // Mock epoch history
-  const epochHistory = mockEpochs.slice(0, 10).map((ep, i) => ({
+  const epochHistory = epochs.slice(0, 10).map((ep, i) => ({
     epoch: ep.id,
     taskCount: Math.max(0, miner.taskCount - i * 50 + Math.floor(Math.random() * 30)),
     avgScore: Math.max(55, miner.avgScore - i * 1.5 + Math.random() * 3),
@@ -27,10 +29,8 @@ export default function MinerDetailPage({ params }: { params: { address: string 
       <Navbar />
       <main className="pt-14">
         <div className="max-w-7xl mx-auto px-6 py-10">
-          {/* Back */}
           <a href="/miners" className="text-xs font-mono text-text-dim hover:text-text-muted transition-colors">← Miners</a>
 
-          {/* Header */}
           <div className="mt-4 mb-10">
             <div className="flex items-center gap-3 mb-3">
               <h1 className="font-mono text-2xl font-bold tracking-tight">{shortenAddress(miner.address)}</h1>
@@ -40,7 +40,6 @@ export default function MinerDetailPage({ params }: { params: { address: string 
             <div className="font-mono text-xs text-text-dim break-all">{miner.address}</div>
           </div>
 
-          {/* Credit bar */}
           <div className="mb-10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Credit Score</span>
@@ -51,7 +50,6 @@ export default function MinerDetailPage({ params }: { params: { address: string 
             </div>
           </div>
 
-          {/* Current epoch stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
               { label: "Submissions", value: miner.taskCount.toLocaleString() },
@@ -66,7 +64,6 @@ export default function MinerDetailPage({ params }: { params: { address: string 
             ))}
           </div>
 
-          {/* Epoch history */}
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Epoch History</h2>

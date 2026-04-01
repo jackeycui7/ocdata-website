@@ -1,12 +1,14 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { mockEpochs, formatNumber } from "@/lib/mock";
+import { formatNumber } from "@/lib/mock";
+import { loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-export default function EpochsPage() {
+export const revalidate = 30;
+
+export default async function EpochsPage() {
+  const epochs = await loadEpochs();
+
   return (
     <>
       <Navbar />
@@ -35,14 +37,8 @@ export default function EpochsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
-                  {mockEpochs.map((ep, i) => (
-                    <motion.tr
-                      key={ep.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2, delay: i * 0.03 }}
-                      className="hover:bg-bg-surface transition-colors group"
-                    >
+                  {epochs.map((ep) => (
+                    <tr key={ep.id} className="hover:bg-bg-surface transition-colors group">
                       <td className="px-6 py-3">
                         <Link href={`/epochs/${ep.id}`} className="font-mono tabular-nums group-hover:text-accent transition-colors">
                           #{ep.id}
@@ -66,7 +62,7 @@ export default function EpochsPage() {
                       <td className="px-6 py-3 font-mono text-xs tabular-nums text-right font-medium">
                         {formatNumber(ep.totalEmission)}
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>

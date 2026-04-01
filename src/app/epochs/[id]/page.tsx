@@ -1,16 +1,20 @@
-"use client";
-
-import { mockEpochs, mockMiners, mockValidators, formatNumber, shortenAddress } from "@/lib/mock";
+import { formatNumber, shortenAddress } from "@/lib/mock";
+import { loadEpochs, loadMiners, loadValidators } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
 
-export default function EpochDetailPage({ params }: { params: { id: string } }) {
-  const epoch = mockEpochs.find((e) => String(e.id) === params.id);
+export const revalidate = 30;
+
+export default async function EpochDetailPage({ params }: { params: { id: string } }) {
+  const epochs = await loadEpochs();
+  const epoch = epochs.find((e) => String(e.id) === params.id);
   if (!epoch) return notFound();
 
-  // Mock settlement results
-  const minerResults = mockMiners.map((m) => ({
+  const miners = await loadMiners();
+  const validators = await loadValidators();
+
+  const minerResults = miners.map((m) => ({
     address: m.address,
     taskCount: m.taskCount,
     avgScore: m.avgScore,
@@ -21,14 +25,15 @@ export default function EpochDetailPage({ params }: { params: { id: string } }) 
     rejected: m.taskCount >= 80 && m.avgScore >= 60 ? 0 : m.taskCount,
   }));
 
-  const validatorResults = mockValidators.map((v) => ({
+  const qualifiedValidators = validators.filter((v) => v.accuracy >= 60);
+  const validatorResults = validators.map((v) => ({
     address: v.address,
     evalCount: v.evalCount,
     accuracy: v.accuracy,
     peerAccuracy: v.peerAccuracy,
     qualified: v.accuracy >= 60,
     weight: v.accuracy >= 60 ? Math.round(v.accuracy * v.accuracy * v.evalCount) : 0,
-    reward: v.accuracy >= 60 ? Math.round(epoch.validatorPool / mockValidators.filter((x) => x.accuracy >= 60).length) : 0,
+    reward: v.accuracy >= 60 ? Math.round(epoch.validatorPool / (qualifiedValidators.length || 1)) : 0,
     penalty: v.accuracy < 40 ? "slashed" : "",
   }));
 
@@ -44,7 +49,6 @@ export default function EpochDetailPage({ params }: { params: { id: string } }) 
             <p className="text-text-muted text-sm mt-2">{epoch.startTime.split("T")[0]}</p>
           </div>
 
-          {/* Emission breakdown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
               { label: "Total Emission", value: formatNumber(epoch.totalEmission) + " $aMine" },
@@ -59,7 +63,6 @@ export default function EpochDetailPage({ params }: { params: { id: string } }) 
             ))}
           </div>
 
-          {/* Miner Results */}
           <div className="border border-border rounded-lg overflow-hidden mb-8">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Miner Settlement</h2>
@@ -96,7 +99,6 @@ export default function EpochDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {/* Validator Results */}
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Validator Settlement</h2>
@@ -115,18 +117,18 @@ export default function EpochDetailPage({ params }: { params: { id: string } }) 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
-                  {validatorResults.map((v) => (
-                    <tr key={v.address} className="hover:bg-bg-surface transition-colors">
-                      <td className="px-6 py-3 font-mono text-sm">{shortenAddress(v.address)}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{v.evalCount.toLocaleString()}</td>
-                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{v.accuracy.toFixed(1)}%</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{v.peerAccuracy.toFixed(1)}%</td>
+                  {validatorResults.map((vr) => (
+                    <tr key={vr.address} className="hover:bg-bg-surface transition-colors">
+                      <td className="px-6 py-3 font-mono text-sm">{shortenAddress(vr.address)}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{vr.evalCount.toLocaleString()}</td>
+                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{vr.accuracy.toFixed(1)}%</td>
+                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{vr.peerAccuracy.toFixed(1)}%</td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-mono ${v.qualified ? "text-success" : "text-danger"}`}>{v.qualified ? "yes" : "no"}</span>
+                        <span className={`text-xs font-mono ${vr.qualified ? "text-success" : "text-danger"}`}>{vr.qualified ? "yes" : "no"}</span>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right font-medium">{v.qualified ? formatNumber(v.reward) : "0"}</td>
+                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right font-medium">{vr.qualified ? formatNumber(vr.reward) : "0"}</td>
                       <td className="px-6 py-3 text-center">
-                        {v.penalty ? <span className="text-[10px] font-mono text-danger uppercase">{v.penalty}</span> : <span className="text-text-dim">—</span>}
+                        {vr.penalty ? <span className="text-[10px] font-mono text-danger uppercase">{vr.penalty}</span> : <span className="text-text-dim">—</span>}
                       </td>
                     </tr>
                   ))}

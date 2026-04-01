@@ -1,16 +1,17 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { mockMiners, shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
+import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
+import { loadMiners } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const sorted = [...mockMiners].sort((a, b) => b.avgScore * b.taskCount - a.avgScore * a.taskCount);
-const onlineCount = mockMiners.filter((m) => m.online).length;
-const avgCredit = Math.round(mockMiners.reduce((s, m) => s + m.credit, 0) / mockMiners.length);
+export const revalidate = 30;
 
-export default function MinersPage() {
+export default async function MinersPage() {
+  const miners = await loadMiners();
+  const sorted = [...miners].sort((a, b) => b.avgScore * b.taskCount - a.avgScore * a.taskCount);
+  const onlineCount = miners.filter((m) => m.online).length;
+  const avgCredit = miners.length > 0 ? Math.round(miners.reduce((s, m) => s + m.credit, 0) / miners.length) : 0;
+
   return (
     <>
       <Navbar />
@@ -21,28 +22,20 @@ export default function MinersPage() {
             <h1 className="text-3xl font-bold mt-2 tracking-tight">Miners</h1>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
-              { label: "Total Miners", value: String(mockMiners.length) },
+              { label: "Total Miners", value: String(miners.length) },
               { label: "Online", value: String(onlineCount) },
               { label: "Avg Credit", value: String(avgCredit) },
-              { label: "Qualified (Epoch)", value: String(mockMiners.filter((m) => m.taskCount >= 80 && m.avgScore >= 60).length) },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="bg-bg-surface p-5"
-              >
+              { label: "Qualified (Epoch)", value: String(miners.filter((m) => m.taskCount >= 80 && m.avgScore >= 60).length) },
+            ].map((s) => (
+              <div key={s.label} className="bg-bg-surface p-5">
                 <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
                 <div className="font-mono text-xl font-semibold tabular-nums">{s.value}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
-          {/* Table */}
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -63,13 +56,7 @@ export default function MinersPage() {
                     const tier = getTier(m.credit);
                     const t = TIERS[tier];
                     return (
-                      <motion.tr
-                        key={m.address}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2, delay: i * 0.04 }}
-                        className="hover:bg-bg-surface transition-colors group"
-                      >
+                      <tr key={m.address} className="hover:bg-bg-surface transition-colors group">
                         <td className="px-6 py-3 font-mono text-text-dim tabular-nums">{i + 1}</td>
                         <td className="px-4 py-3">
                           <Link href={`/miners/${m.address}`} className="font-mono text-sm group-hover:text-accent transition-colors">
@@ -91,7 +78,7 @@ export default function MinersPage() {
                         <td className="px-6 py-3 text-center">
                           <span className={`inline-block w-2 h-2 rounded-full ${m.online ? "bg-success" : "bg-text-dim"}`} />
                         </td>
-                      </motion.tr>
+                      </tr>
                     );
                   })}
                 </tbody>

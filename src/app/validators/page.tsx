@@ -1,16 +1,17 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
-import { mockValidators, shortenAddress, TIERS, getTier } from "@/lib/mock";
+import { shortenAddress, TIERS, getTier } from "@/lib/mock";
+import { loadValidators } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-const sorted = [...mockValidators].sort((a, b) => b.accuracy - a.accuracy);
-const onlineCount = mockValidators.filter((v) => v.online).length;
-const readyCount = mockValidators.filter((v) => v.ready).length;
+export const revalidate = 30;
 
-export default function ValidatorsPage() {
+export default async function ValidatorsPage() {
+  const validators = await loadValidators();
+  const sorted = [...validators].sort((a, b) => b.accuracy - a.accuracy);
+  const onlineCount = validators.filter((v) => v.online).length;
+  const readyCount = validators.filter((v) => v.ready).length;
+
   return (
     <>
       <Navbar />
@@ -23,15 +24,15 @@ export default function ValidatorsPage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
-              { label: "Total", value: String(mockValidators.length) },
+              { label: "Total", value: String(validators.length) },
               { label: "Online", value: String(onlineCount) },
               { label: "Ready Pool", value: String(readyCount) },
-              { label: "Avg Accuracy", value: (mockValidators.reduce((s, v) => s + v.accuracy, 0) / mockValidators.length).toFixed(1) + "%" },
-            ].map((s, i) => (
-              <motion.div key={s.label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, delay: i * 0.05 }} className="bg-bg-surface p-5">
+              { label: "Avg Accuracy", value: validators.length > 0 ? (validators.reduce((s, v) => s + v.accuracy, 0) / validators.length).toFixed(1) + "%" : "—" },
+            ].map((s) => (
+              <div key={s.label} className="bg-bg-surface p-5">
                 <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
                 <div className="font-mono text-xl font-semibold tabular-nums">{s.value}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -57,7 +58,7 @@ export default function ValidatorsPage() {
                     const tier = getTier(v.credit);
                     const t = TIERS[tier];
                     return (
-                      <motion.tr key={v.address} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: i * 0.04 }} className="hover:bg-bg-surface transition-colors group">
+                      <tr key={v.address} className="hover:bg-bg-surface transition-colors group">
                         <td className="px-6 py-3 font-mono text-text-dim tabular-nums">{i + 1}</td>
                         <td className="px-4 py-3">
                           <Link href={`/validators/${v.address}`} className="font-mono text-sm group-hover:text-accent transition-colors">
@@ -83,7 +84,7 @@ export default function ValidatorsPage() {
                         <td className="px-6 py-3 text-center">
                           <span className={`inline-block w-2 h-2 rounded-full ${v.online ? "bg-success" : "bg-text-dim"}`} />
                         </td>
-                      </motion.tr>
+                      </tr>
                     );
                   })}
                 </tbody>

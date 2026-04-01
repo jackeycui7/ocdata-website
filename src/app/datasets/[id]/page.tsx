@@ -1,12 +1,12 @@
-"use client";
-
-import { mockDatasets } from "@/lib/mock";
+import { loadDataset } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
 
-export default function DatasetDetailPage({ params }: { params: { id: string } }) {
-  const ds = mockDatasets.find((d) => d.id === params.id);
+export const revalidate = 30;
+
+export default async function DatasetDetailPage({ params }: { params: { id: string } }) {
+  const ds = await loadDataset(params.id);
   if (!ds) return notFound();
 
   const schemaEntries = Object.entries(ds.schema);
@@ -17,14 +17,9 @@ export default function DatasetDetailPage({ params }: { params: { id: string } }
       <Navbar />
       <main className="pt-14">
         <div className="max-w-7xl mx-auto px-6 py-10">
-          {/* Header */}
           <div className="mb-10">
-            <div className="flex items-center gap-3 mb-3">
-              <a href="/datasets" className="text-xs font-mono text-text-dim hover:text-text-muted transition-colors">
-                ← Datasets
-              </a>
-            </div>
-            <div className="flex items-start justify-between flex-wrap gap-4">
+            <a href="/datasets" className="text-xs font-mono text-text-dim hover:text-text-muted transition-colors">← Datasets</a>
+            <div className="flex items-start justify-between flex-wrap gap-4 mt-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold tracking-tight">{ds.name}</h1>
@@ -49,7 +44,6 @@ export default function DatasetDetailPage({ params }: { params: { id: string } }
             </div>
           </div>
 
-          {/* Stats row */}
           <div className="grid grid-cols-3 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
               { label: "Total Entries", value: ds.entries.toLocaleString() },
@@ -63,7 +57,6 @@ export default function DatasetDetailPage({ params }: { params: { id: string } }
             ))}
           </div>
 
-          {/* Schema table */}
           <div className="border border-border rounded-lg overflow-hidden mb-10">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Schema</h2>
@@ -94,7 +87,6 @@ export default function DatasetDetailPage({ params }: { params: { id: string } }
             </table>
           </div>
 
-          {/* JSON preview */}
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Schema JSON</h2>

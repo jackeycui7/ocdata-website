@@ -1,18 +1,21 @@
-"use client";
-
-import { mockValidators, shortenAddress, TIERS, getTier, mockEpochs, formatNumber } from "@/lib/mock";
+import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
+import { loadValidators, loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
 
-export default function ValidatorDetailPage({ params }: { params: { address: string } }) {
-  const v = mockValidators.find((x) => x.address === decodeURIComponent(params.address));
+export const revalidate = 30;
+
+export default async function ValidatorDetailPage({ params }: { params: { address: string } }) {
+  const validators = await loadValidators();
+  const v = validators.find((x) => x.address === decodeURIComponent(params.address));
   if (!v) return notFound();
 
   const tier = getTier(v.credit);
   const t = TIERS[tier];
+  const epochs = await loadEpochs();
 
-  const epochHistory = mockEpochs.slice(0, 10).map((ep, i) => ({
+  const epochHistory = epochs.slice(0, 10).map((ep, i) => ({
     epoch: ep.id,
     evalCount: Math.max(10, v.evalCount / 10 - i * 20 + Math.floor(Math.random() * 40)),
     accuracy: Math.max(60, v.accuracy - i * 1.2 + Math.random() * 2),
@@ -38,7 +41,6 @@ export default function ValidatorDetailPage({ params }: { params: { address: str
             <div className="font-mono text-xs text-text-dim break-all">{v.address}</div>
           </div>
 
-          {/* Credit bar */}
           <div className="mb-10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Credit Score</span>
@@ -49,7 +51,6 @@ export default function ValidatorDetailPage({ params }: { params: { address: str
             </div>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
               { label: "Eval Count", value: v.evalCount.toLocaleString() },
@@ -65,7 +66,6 @@ export default function ValidatorDetailPage({ params }: { params: { address: str
             ))}
           </div>
 
-          {/* Epoch history */}
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Epoch History</h2>
