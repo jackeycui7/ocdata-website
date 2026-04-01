@@ -1,6 +1,7 @@
 import { loadDataset } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import DatasetDetailClient from "@/components/DatasetDetailClient";
 import { notFound } from "next/navigation";
 
 export const revalidate = 30;
@@ -57,44 +58,7 @@ export default async function DatasetDetailPage({ params }: { params: { id: stri
             ))}
           </div>
 
-          <div className="border border-border rounded-lg overflow-hidden mb-10">
-            <div className="px-6 py-4 border-b border-border bg-bg-surface">
-              <h2 className="text-sm font-semibold">Schema</h2>
-            </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                  <th className="text-left px-6 py-3">Field</th>
-                  <th className="text-left px-4 py-3">Type</th>
-                  <th className="text-center px-4 py-3">Required</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {schemaEntries.map(([field, spec]) => (
-                  <tr key={field} className="hover:bg-bg-surface transition-colors">
-                    <td className="px-6 py-3 font-mono text-sm">{field}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-text-muted">{spec.type}</td>
-                    <td className="px-4 py-3 text-center">
-                      {spec.required ? (
-                        <span className="text-success text-xs font-mono">yes</span>
-                      ) : (
-                        <span className="text-text-dim text-xs font-mono">no</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="border border-border rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-border bg-bg-surface">
-              <h2 className="text-sm font-semibold">Schema JSON</h2>
-            </div>
-            <pre className="p-6 text-xs font-mono text-text-muted overflow-x-auto leading-6">
-              {JSON.stringify(ds.schema, null, 2)}
-            </pre>
-          </div>
+          <DatasetDetailClient ds={ds} />
         </div>
       </main>
       <Footer />

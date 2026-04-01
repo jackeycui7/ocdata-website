@@ -1,7 +1,8 @@
-import { formatNumber, shortenAddress } from "@/lib/mock";
+import { formatNumber } from "@/lib/mock";
 import { loadEpochs, loadMiners, loadValidators } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import EpochDetailClient from "@/components/EpochDetailClient";
 import { notFound } from "next/navigation";
 
 export const revalidate = 30;
@@ -19,10 +20,9 @@ export default async function EpochDetailPage({ params }: { params: { id: string
     taskCount: m.taskCount,
     avgScore: m.avgScore,
     qualified: m.taskCount >= 80 && m.avgScore >= 60,
-    weight: m.avgScore >= 60 ? Math.round(m.avgScore * m.avgScore * m.taskCount) : 0,
-    reward: m.reward,
     confirmed: m.taskCount >= 80 && m.avgScore >= 60 ? m.taskCount : 0,
     rejected: m.taskCount >= 80 && m.avgScore >= 60 ? 0 : m.taskCount,
+    reward: m.reward,
   }));
 
   const qualifiedValidators = validators.filter((v) => v.accuracy >= 60);
@@ -32,7 +32,6 @@ export default async function EpochDetailPage({ params }: { params: { id: string
     accuracy: v.accuracy,
     peerAccuracy: v.peerAccuracy,
     qualified: v.accuracy >= 60,
-    weight: v.accuracy >= 60 ? Math.round(v.accuracy * v.accuracy * v.evalCount) : 0,
     reward: v.accuracy >= 60 ? Math.round(epoch.validatorPool / (qualifiedValidators.length || 1)) : 0,
     penalty: v.accuracy < 40 ? "slashed" : "",
   }));
@@ -63,79 +62,7 @@ export default async function EpochDetailPage({ params }: { params: { id: string
             ))}
           </div>
 
-          <div className="border border-border rounded-lg overflow-hidden mb-8">
-            <div className="px-6 py-4 border-b border-border bg-bg-surface">
-              <h2 className="text-sm font-semibold">Miner Settlement</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                    <th className="text-left px-6 py-3">Miner</th>
-                    <th className="text-right px-4 py-3">Tasks</th>
-                    <th className="text-right px-4 py-3">Avg Score</th>
-                    <th className="text-center px-4 py-3">Qualified</th>
-                    <th className="text-right px-4 py-3">Confirmed</th>
-                    <th className="text-right px-4 py-3">Rejected</th>
-                    <th className="text-right px-6 py-3">Reward</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-subtle">
-                  {minerResults.map((m) => (
-                    <tr key={m.address} className="hover:bg-bg-surface transition-colors">
-                      <td className="px-6 py-3 font-mono text-sm">{shortenAddress(m.address)}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{m.taskCount}</td>
-                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{m.avgScore.toFixed(1)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-mono ${m.qualified ? "text-success" : "text-danger"}`}>{m.qualified ? "yes" : "no"}</span>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-success tabular-nums text-right">{m.confirmed || "—"}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-danger tabular-nums text-right">{m.rejected || "—"}</td>
-                      <td className="px-6 py-3 font-mono text-xs tabular-nums text-right font-medium">{m.qualified ? formatNumber(m.reward) : "0"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="border border-border rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-border bg-bg-surface">
-              <h2 className="text-sm font-semibold">Validator Settlement</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                    <th className="text-left px-6 py-3">Validator</th>
-                    <th className="text-right px-4 py-3">Evals</th>
-                    <th className="text-right px-4 py-3">Accuracy</th>
-                    <th className="text-right px-4 py-3">Peer Acc.</th>
-                    <th className="text-center px-4 py-3">Qualified</th>
-                    <th className="text-right px-4 py-3">Reward</th>
-                    <th className="text-center px-6 py-3">Penalty</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-subtle">
-                  {validatorResults.map((vr) => (
-                    <tr key={vr.address} className="hover:bg-bg-surface transition-colors">
-                      <td className="px-6 py-3 font-mono text-sm">{shortenAddress(vr.address)}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{vr.evalCount.toLocaleString()}</td>
-                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{vr.accuracy.toFixed(1)}%</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{vr.peerAccuracy.toFixed(1)}%</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-mono ${vr.qualified ? "text-success" : "text-danger"}`}>{vr.qualified ? "yes" : "no"}</span>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right font-medium">{vr.qualified ? formatNumber(vr.reward) : "0"}</td>
-                      <td className="px-6 py-3 text-center">
-                        {vr.penalty ? <span className="text-[10px] font-mono text-danger uppercase">{vr.penalty}</span> : <span className="text-text-dim">—</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <EpochDetailClient minerResults={minerResults} validatorResults={validatorResults} />
         </div>
       </main>
       <Footer />

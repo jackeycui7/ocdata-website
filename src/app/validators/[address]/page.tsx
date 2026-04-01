@@ -2,6 +2,7 @@ import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
 import { loadValidators, loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ValidatorTrendChart from "@/components/charts/ValidatorTrendChart";
 import { notFound } from "next/navigation";
 
 export const revalidate = 30;
@@ -22,6 +23,12 @@ export default async function ValidatorDetailPage({ params }: { params: { addres
     peerAccuracy: Math.max(58, v.peerAccuracy - i * 1.5 + Math.random() * 3),
     qualified: i < 8,
     reward: Math.max(0, 800 - i * 60 + Math.floor(Math.random() * 50)),
+  }));
+
+  const trendData = [...epochHistory].reverse().map((eh) => ({
+    epoch: `#${eh.epoch}`,
+    accuracy: Number(eh.accuracy.toFixed(1)),
+    peerAccuracy: Number(eh.peerAccuracy.toFixed(1)),
   }));
 
   return (
@@ -64,6 +71,15 @@ export default async function ValidatorDetailPage({ params }: { params: { addres
                 <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
               </div>
             ))}
+          </div>
+
+          <div className="border border-border rounded-lg overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-border bg-bg-surface">
+              <h2 className="text-sm font-semibold">Accuracy Trend</h2>
+            </div>
+            <div className="p-4">
+              <ValidatorTrendChart data={trendData} />
+            </div>
           </div>
 
           <div className="border border-border rounded-lg overflow-hidden">

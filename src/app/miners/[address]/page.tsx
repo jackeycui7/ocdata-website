@@ -2,6 +2,7 @@ import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
 import { loadMiners, loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import MinerTrendChart from "@/components/charts/MinerTrendChart";
 import { notFound } from "next/navigation";
 
 export const revalidate = 30;
@@ -22,6 +23,12 @@ export default async function MinerDetailPage({ params }: { params: { address: s
     avgScore: Math.max(55, miner.avgScore - i * 1.5 + Math.random() * 3),
     qualified: i < 7,
     reward: Math.max(0, miner.reward - i * 200 + Math.floor(Math.random() * 100)),
+  }));
+
+  const trendData = [...epochHistory].reverse().map((eh) => ({
+    epoch: `#${eh.epoch}`,
+    submissions: eh.taskCount,
+    avgScore: Number(eh.avgScore.toFixed(1)),
   }));
 
   return (
@@ -62,6 +69,15 @@ export default async function MinerDetailPage({ params }: { params: { address: s
                 <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
               </div>
             ))}
+          </div>
+
+          <div className="border border-border rounded-lg overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-border bg-bg-surface">
+              <h2 className="text-sm font-semibold">Submission Trend</h2>
+            </div>
+            <div className="p-4">
+              <MinerTrendChart data={trendData} />
+            </div>
           </div>
 
           <div className="border border-border rounded-lg overflow-hidden">
