@@ -2,6 +2,8 @@ import { formatNumber, TIERS, getTier } from "@/lib/mock";
 import { loadDashboardStats, loadDatasets, loadMiners, loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import EpochEmissionChart from "@/components/charts/EpochEmissionChart";
+import CreditDistChart from "@/components/charts/CreditDistChart";
 
 export const revalidate = 30;
 
@@ -36,10 +38,22 @@ export default async function DashboardPage() {
     { dataset: "Amazon Sellers", miner: "0xA1b2...abcd", time: "1m ago", status: "confirmed" },
   ];
 
+  const emissionData = [...epochs].reverse().map((ep) => ({
+    epoch: `#${ep.id}`,
+    minerPool: ep.minerPool,
+    validatorPool: ep.validatorPool,
+    ownerPool: ep.ownerPool,
+  }));
+
   const creditDist = (() => {
     const counts: Record<string, number> = { excellent: 0, good: 0, normal: 0, limited: 0, novice: 0 };
     miners.forEach((m) => { counts[getTier(m.credit)]++; });
-    return Object.entries(counts).map(([tier, count]) => ({ tier, count, total: miners.length }));
+    return Object.entries(counts).map(([tier, count]) => ({
+      tier,
+      label: TIERS[tier].label,
+      count,
+      color: TIERS[tier].color,
+    }));
   })();
 
   return (
@@ -75,6 +89,15 @@ export default async function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
+              <div className="border border-border rounded-lg overflow-hidden">
+                <div className="px-6 py-4 border-b border-border bg-bg-surface">
+                  <h2 className="text-sm font-semibold">Epoch Emission History</h2>
+                </div>
+                <div className="p-4">
+                  <EpochEmissionChart data={emissionData} />
+                </div>
+              </div>
+
               <div className="border border-border rounded-lg overflow-hidden">
                 <div className="px-6 py-4 border-b border-border bg-bg-surface">
                   <h2 className="text-sm font-semibold">DataSet Ranking</h2>
@@ -157,20 +180,8 @@ export default async function DashboardPage() {
                 <div className="px-5 py-4 border-b border-border bg-bg-surface">
                   <h2 className="text-sm font-semibold">Miner Credit Distribution</h2>
                 </div>
-                <div className="p-5 space-y-3">
-                  {creditDist.map((item) => {
-                    const t = TIERS[item.tier];
-                    const pct = item.total > 0 ? (item.count / item.total) * 100 : 0;
-                    return (
-                      <div key={item.tier} className="flex items-center gap-3">
-                        <span className={`text-xs font-mono w-16 ${t.color}`}>{t.label}</span>
-                        <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-accent/30" style={{ width: `${pct}%` }} />
-                        </div>
-                        <span className="font-mono text-xs text-text-dim tabular-nums w-6 text-right">{item.count}</span>
-                      </div>
-                    );
-                  })}
+                <div className="p-5">
+                  <CreditDistChart data={creditDist} />
                 </div>
               </div>
             </div>
