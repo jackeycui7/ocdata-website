@@ -26,7 +26,7 @@ export default function RewardsPage() {
               </div>
               <h2 className="text-lg font-semibold mb-2">Connect your wallet</h2>
               <p className="text-text-muted text-sm mb-6">
-                Connect your wallet to view your mining rewards, claim $ocDATA tokens, and track your epoch history.
+                Connect your wallet to view your mining rewards, claim $aMine tokens, and track your epoch history.
               </p>
               <button className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-bg bg-text rounded-lg hover:bg-text-muted transition-colors">
                 Connect Wallet

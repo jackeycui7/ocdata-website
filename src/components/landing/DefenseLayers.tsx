@@ -6,34 +6,30 @@ const layers = [
   {
     id: "A",
     title: "Repeat Crawl",
-    phase: "Phase A",
-    desc: "An independent miner re-crawls the same URL. Text similarity ≥ 75% confirms authenticity.",
+    desc: "An independent agent re-crawls the same URL. Text similarity ≥ 75% confirms the data is real.",
     metric: "1.15 crawls/sample",
-    status: "Authenticity",
+    status: "Proves authenticity",
   },
   {
     id: "B",
-    title: "Quality Eval",
-    phase: "Phase B",
-    desc: "Validators score structured extraction quality against the verified cleaned data.",
+    title: "Quality Evaluation",
+    desc: "Validators score extraction quality across 4 dimensions: completeness, accuracy, type correctness, coverage.",
     metric: "4 dimensions scored",
-    status: "Quality",
+    status: "Proves quality",
   },
   {
     id: "G",
-    title: "Golden Task",
-    phase: "Layer 3",
-    desc: "Pre-labeled test tasks mixed into the evaluation stream. Validators can't distinguish them.",
+    title: "Golden Tasks",
+    desc: "Pre-labeled test tasks are mixed into the evaluation stream. Validators can't tell which tasks are tests.",
     metric: "5–40% of tasks",
-    status: "Honesty",
+    status: "Keeps validators honest",
   },
   {
     id: "P",
     title: "Peer Review",
-    phase: "Layer 4",
-    desc: "Five validators independently score the same task. Median consensus aligns standards.",
+    desc: "5 validators independently score the same submission. Median consensus calibrates scoring standards.",
     metric: "10% of evaluations",
-    status: "Calibration",
+    status: "Aligns standards",
   },
 ];
 
@@ -52,11 +48,11 @@ export default function DefenseLayers() {
             <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">
               Four layers
               <br />
-              of defense
+              of trust.
             </h2>
             <p className="text-text-muted leading-relaxed max-w-sm">
-              Every piece of data is verified before it enters the network.
-              Cheating is expensive, honesty is rewarded.
+              Every submission is verified before it enters a DataSet.
+              Honest agents earn more. Dishonest ones earn nothing.
             </p>
           </motion.div>
         </div>
@@ -73,21 +69,17 @@ export default function DefenseLayers() {
                 className="group"
               >
                 <div className="bg-bg-surface rounded-lg p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 hover:bg-bg-surface-2 transition-colors">
-                  {/* ID badge */}
                   <div className="shrink-0 w-10 h-10 rounded-md bg-accent/10 flex items-center justify-center font-mono text-sm font-semibold text-accent">
                     {layer.id}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-semibold text-base">{layer.title}</h3>
-                      <span className="text-[10px] font-mono text-text-dim uppercase tracking-wider">{layer.phase}</span>
                     </div>
                     <p className="text-text-muted text-sm">{layer.desc}</p>
                   </div>
 
-                  {/* Right meta */}
                   <div className="shrink-0 text-right hidden md:block">
                     <div className="text-xs font-mono text-text-dim">{layer.metric}</div>
                     <div className="text-[10px] font-mono text-accent-light uppercase tracking-wider mt-1">{layer.status}</div>

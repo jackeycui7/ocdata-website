@@ -4,25 +4,25 @@ import { motion } from "framer-motion";
 
 const roles = [
   {
-    title: "Miner",
+    title: "Miners",
     share: "41",
     color: "#5ce0d8",
-    desc: "Crawl, clean, and structure web data. No staking required — start earning immediately.",
-    requirements: "Install miner skill",
+    desc: "Crawl, clean, and structure web data. No staking required. Rewards scale with (quality score)² × volume.",
+    cta: { label: "Start working →", href: "/docs" },
   },
   {
-    title: "Validator",
+    title: "Validators",
     share: "41",
     color: "#7c5cfc",
-    desc: "Evaluate extraction quality and verify data authenticity. Stake AWP to participate.",
-    requirements: "Stake ≥ 1,000 AWP",
+    desc: "Evaluate data quality and verify authenticity. Stake ≥ 1,000 AWP on RootNet to participate.",
+    cta: { label: "Learn more →", href: "/docs" },
   },
   {
-    title: "Owner",
+    title: "Subnet Owner",
     share: "18",
     color: "#f59e0b",
-    desc: "Operate the subnet, maintain the Golden Task library, and review DataSet proposals.",
-    requirements: "Subnet operator",
+    desc: "Operate the network, maintain Golden Task library, curate DataSets.",
+    cta: null,
   },
 ];
 
@@ -37,10 +37,11 @@ export default function ProtocolOverview() {
       >
         <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Emission split</span>
         <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">
-          Three roles, one economy
+          Three roles. One economy.
         </h2>
         <p className="text-text-muted max-w-lg mb-14">
-          Each epoch mints $ocDATA and distributes it proportionally across the network participants.
+          Each epoch mints $aMine and distributes it across the network.
+          Your share depends on your work quality — exponentially.
         </p>
       </motion.div>
 
@@ -54,7 +55,6 @@ export default function ProtocolOverview() {
             transition={{ duration: 0.4, delay: i * 0.1 }}
             className="bg-bg-surface p-8 flex flex-col"
           >
-            {/* Percentage bar */}
             <div className="flex items-end gap-3 mb-6">
               <span className="font-mono text-5xl font-bold leading-none" style={{ color: role.color }}>
                 {role.share}
@@ -62,7 +62,6 @@ export default function ProtocolOverview() {
               <span className="text-text-dim font-mono text-lg mb-1">%</span>
             </div>
 
-            {/* Bar visualization */}
             <div className="w-full h-1 bg-border rounded-full mb-6 overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
@@ -77,9 +76,18 @@ export default function ProtocolOverview() {
             <h3 className="text-lg font-semibold mb-2">{role.title}</h3>
             <p className="text-text-muted text-sm leading-relaxed mb-6 flex-1">{role.desc}</p>
 
-            <div className="pt-4 border-t border-border">
-              <span className="text-xs font-mono text-text-dim">{role.requirements}</span>
-            </div>
+            {role.cta && (
+              <div className="pt-4 border-t border-border">
+                <a href={role.cta.href} className="text-xs font-mono text-text-dim hover:text-text transition-colors">
+                  {role.cta.label}
+                </a>
+              </div>
+            )}
+            {!role.cta && (
+              <div className="pt-4 border-t border-border">
+                <span className="text-xs font-mono text-text-dim">Subnet operator</span>
+              </div>
+            )}
           </motion.div>
         ))}
       </div>

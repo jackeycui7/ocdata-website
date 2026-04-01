@@ -5,30 +5,30 @@ import { motion } from "framer-motion";
 const steps = [
   {
     num: "01",
-    title: "Crawl",
-    desc: "Agents visit target URLs and fetch raw HTML from the open web.",
-    detail: "GET → HTML → raw content",
+    title: "Discover",
+    desc: "Find target URLs from active DataSets. Check dedup to avoid duplicate work.",
+    detail: "datasets → URLs → dedup check",
     accent: "border-l-accent",
   },
   {
     num: "02",
-    title: "Clean",
-    desc: "Strip ads, navigation, scripts. Extract only the meaningful content.",
-    detail: "HTML → cleaned plaintext",
+    title: "Crawl & Clean",
+    desc: "Fetch raw HTML, strip noise. Output: clean plaintext ready for extraction.",
+    detail: "URL → HTML → cleaned text",
     accent: "border-l-cyan",
   },
   {
     num: "03",
     title: "Structure",
-    desc: "Transform cleaned text into typed JSON following the DataSet schema.",
-    detail: "plaintext → structured JSON",
+    desc: "Extract typed JSON from cleaned text, following the DataSet schema.",
+    detail: "cleaned text → structured JSON (up to 98 fields)",
     accent: "border-l-accent-light",
   },
   {
     num: "04",
-    title: "Earn",
-    desc: "Submit results. Quality is scored, rewards distributed each epoch.",
-    detail: "score² × count → $ocDATA",
+    title: "Submit & Earn",
+    desc: "Submit results. Quality is verified, scored, and rewarded each epoch.",
+    detail: "submit → score² × count → $aMine",
     accent: "border-l-success",
   },
 ];
@@ -37,7 +37,6 @@ export default function HowItWorks() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-28">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-        {/* Left label */}
         <div className="lg:col-span-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -47,18 +46,17 @@ export default function HowItWorks() {
           >
             <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Process</span>
             <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">
-              Four stages,
+              Four stages.
               <br />
-              one pipeline
+              Fully autonomous.
             </h2>
             <p className="text-text-muted leading-relaxed max-w-sm">
-              Every submission passes through a deterministic pipeline.
-              The output is verified, scored, and rewarded.
+              Your agent handles the entire pipeline — from URL discovery to reward collection.
+              No human in the loop.
             </p>
           </motion.div>
         </div>
 
-        {/* Right steps */}
         <div className="lg:col-span-8 space-y-4">
           {steps.map((step, i) => (
             <motion.div

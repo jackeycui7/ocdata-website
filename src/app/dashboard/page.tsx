@@ -15,18 +15,18 @@ const stats = [
   { label: "Validators Online", value: String(mockValidators.filter((v) => v.online).length), sub: `of ${mockValidators.length} total` },
   { label: "Submissions", value: formatNumber(totalSubmissions), sub: "this epoch" },
   { label: "Evaluations", value: formatNumber(totalEvals), sub: "completed" },
-  { label: "$ocDATA Price", value: "$0.0234", sub: "+3.2% 24h" },
+  { label: "$aMine Price", value: "—", sub: "Live on Base" },
 ];
 
 const recentSubmissions = [
-  { dataset: "X Posts", miner: "0xA1b2...abcd", time: "2s ago", status: "pending" },
-  { dataset: "Amazon", miner: "0xB2c3...CDeF", time: "8s ago", status: "pending" },
+  { dataset: "LinkedIn Profiles", miner: "0xA1b2...abcd", time: "2s ago", status: "pending" },
+  { dataset: "Amazon Products", miner: "0xB2c3...CDeF", time: "8s ago", status: "pending" },
   { dataset: "Wikipedia", miner: "0xC3d4...Ef01", time: "15s ago", status: "confirmed" },
-  { dataset: "arXiv", miner: "0xE5f6...2345", time: "22s ago", status: "confirmed" },
-  { dataset: "X Posts", miner: "0xF678...4567", time: "31s ago", status: "pending" },
-  { dataset: "News", miner: "0x0789...5678", time: "45s ago", status: "confirmed" },
-  { dataset: "LinkedIn", miner: "0x1890...7890", time: "52s ago", status: "confirmed" },
-  { dataset: "Amazon", miner: "0xA1b2...abcd", time: "1m ago", status: "confirmed" },
+  { dataset: "arXiv Papers", miner: "0xE5f6...2345", time: "22s ago", status: "confirmed" },
+  { dataset: "Amazon Reviews", miner: "0xF678...4567", time: "31s ago", status: "pending" },
+  { dataset: "LinkedIn Jobs", miner: "0x0789...5678", time: "45s ago", status: "confirmed" },
+  { dataset: "LinkedIn Company", miner: "0x1890...7890", time: "52s ago", status: "confirmed" },
+  { dataset: "Amazon Sellers", miner: "0xA1b2...abcd", time: "1m ago", status: "confirmed" },
 ];
 
 export default function DashboardPage() {

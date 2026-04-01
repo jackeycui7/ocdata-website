@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 
 const tokenData = [
-  { label: "Price", value: "$0.0234", mono: true },
-  { label: "24h Volume", value: "$128K", mono: true },
-  { label: "Epoch Emission", value: "500,000", mono: true },
-  { label: "Chain", value: "BSC", mono: false },
+  { label: "Chain", value: "Base (ERC-20)", mono: false },
+  { label: "Epoch", value: "24 hours", mono: false },
+  { label: "Emission", value: "Per-epoch, decaying", mono: false },
+  { label: "Distribution", value: "41% miners · 41% validators · 18% owner", mono: false },
 ];
 
 export default function TokenInfo() {
@@ -20,30 +20,28 @@ export default function TokenInfo() {
         className="border border-border rounded-lg overflow-hidden"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12">
-          {/* Left: token identity */}
           <div className="lg:col-span-5 p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-border">
             <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Token</span>
             <h2 className="text-3xl font-bold mt-3 mb-3 tracking-tight">
-              <span className="text-accent">$oc</span>DATA
+              <span className="text-accent">$a</span>Mine
             </h2>
             <p className="text-text-muted text-sm leading-relaxed mb-6">
-              ERC-20 on BNB Smart Chain. Minted by the SubnetContract each epoch
-              and distributed to miners, validators, and the subnet owner.
+              ERC-20 on Base. Minted each epoch and distributed to miners, validators, and the subnet owner.
+              Backed by real work — every token represents verified, structured data.
             </p>
             <a
-              href="https://pancakeswap.finance"
+              href="https://app.uniswap.org"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm font-medium text-text-muted hover:text-text transition-colors"
             >
-              Trade on PancakeSwap
+              Get $aMine on Uniswap
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M1 11L11 1M11 1H3M11 1v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </a>
           </div>
 
-          {/* Right: stats grid */}
           <div className="lg:col-span-7 grid grid-cols-2 divide-x divide-y divide-border">
             {tokenData.map((item, i) => (
               <motion.div
@@ -57,7 +55,7 @@ export default function TokenInfo() {
                 <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-3">
                   {item.label}
                 </div>
-                <div className={`text-2xl font-semibold tabular-nums ${item.mono ? "font-mono" : ""}`}>
+                <div className={`text-xl font-semibold tabular-nums ${item.mono ? "font-mono" : ""}`}>
                   {item.value}
                 </div>
               </motion.div>

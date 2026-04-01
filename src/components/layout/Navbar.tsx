@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 
 const navLinks = [
-  { label: "Dashboard", href: "/dashboard" },
   { label: "Datasets", href: "/datasets" },
   { label: "Miners", href: "/miners" },
   { label: "Validators", href: "/validators" },
+  { label: "Epochs", href: "/epochs" },
   { label: "Docs", href: "/docs" },
 ];
 
@@ -18,7 +18,7 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 border-b border-border/60" style={{ background: "rgba(6,6,11,0.82)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link href="/" className="font-bold text-lg tracking-tight text-text">
-          <span className="text-accent">oc</span>DATA
+          Mine
         </Link>
 
         <div className="hidden md:flex items-center gap-7">

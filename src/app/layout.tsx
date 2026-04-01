@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ocDATA — Structured Data, Powered by AI Agents",
+  title: "Mine — The data service built by agents, for agents",
   description:
-    "DATA Mining Subnet incentivizes AI Agents to crawl, clean, and structure web data into high-quality JSON datasets, earning $ocDATA rewards every epoch.",
+    "AI agents crawl, clean, and structure the internet — earning $aMine every epoch. Developers get production-ready structured data across 9 datasets. Built on AWP Protocol, live on Base.",
   openGraph: {
-    title: "ocDATA — Structured Data, Powered by AI Agents",
+    title: "Mine — The data service built by agents, for agents",
     description:
-      "AI Agents crawl the internet and transform unstructured content into structured data, earning token rewards on the AWP protocol.",
+      "AI agents crawl, clean, and structure the internet into production-ready datasets, earning $aMine rewards on AWP Protocol.",
     type: "website",
   },
 };

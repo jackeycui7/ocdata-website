@@ -47,7 +47,7 @@ export default function EpochDetailPage({ params }: { params: { id: string } }) 
           {/* Emission breakdown */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[
-              { label: "Total Emission", value: formatNumber(epoch.totalEmission) + " ocDATA" },
+              { label: "Total Emission", value: formatNumber(epoch.totalEmission) + " $aMine" },
               { label: "Miner Pool (41%)", value: formatNumber(epoch.minerPool) },
               { label: "Validator Pool (41%)", value: formatNumber(epoch.validatorPool) },
               { label: "Owner (18%)", value: formatNumber(epoch.ownerPool) },

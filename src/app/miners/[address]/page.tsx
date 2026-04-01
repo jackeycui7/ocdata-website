@@ -57,7 +57,7 @@ export default function MinerDetailPage({ params }: { params: { address: string 
               { label: "Submissions", value: miner.taskCount.toLocaleString() },
               { label: "Avg Score", value: miner.avgScore.toFixed(1) },
               { label: "Qualified", value: qualified ? "Yes" : "No" },
-              { label: "Epoch Reward", value: `${formatNumber(miner.reward)} ocDATA` },
+              { label: "Epoch Reward", value: `${formatNumber(miner.reward)} $aMine` },
             ].map((s) => (
               <div key={s.label} className="bg-bg-surface p-5">
                 <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
