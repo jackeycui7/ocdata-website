@@ -175,6 +175,48 @@ export async function loadEpochSnapshot(epochId: string): Promise<api.ApiEpochSn
   return api.fetchEpochSnapshot(epochId);
 }
 
+// --- Validators (sourced from latest completed epoch settlement) ---
+
+export interface ValidatorEpochStat {
+  address: string;
+  evalCount: number;
+  accuracy: number;
+  peerAccuracy: number;
+  qualified: boolean;
+  reward: number;
+}
+
+export interface ValidatorsEpochData {
+  epochId: string;   // e.g. "2026-04-02"
+  validators: ValidatorEpochStat[];
+}
+
+export async function loadValidatorsFromEpoch(): Promise<ValidatorsEpochData | null> {
+  const epochs = await api.fetchCoreEpochs(1, 10);
+  if (!epochs) return null;
+
+  const completed = epochs.filter(
+    (e) => e.status === "completed" && e.epoch_id !== "2099-12-31"
+  );
+  if (completed.length === 0) return null;
+
+  const latest = completed[0];
+  const settlement = await api.fetchEpochSettlement(latest.id);
+  if (!settlement || settlement.validators.length === 0) return null;
+
+  return {
+    epochId: latest.epoch_id,
+    validators: settlement.validators.map((v) => ({
+      address: v.validator_id,
+      evalCount: v.eval_count,
+      accuracy: v.accuracy,
+      peerAccuracy: v.peer_review_accuracy,
+      qualified: v.qualified,
+      reward: v.reward_amount,
+    })),
+  };
+}
+
 export async function loadRecentSubmissions() {
   const remote = await api.fetchSubmissions(1, 10);
   return remote ?? [];
