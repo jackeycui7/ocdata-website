@@ -1,5 +1,5 @@
 import { loadEpochs, loadEpochSettlement, loadEpochSnapshot } from "@/lib/data";
-import { shortenAddress, formatNumber } from "@/lib/mock";
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EpochDetailClient from "@/components/EpochDetailClient";
