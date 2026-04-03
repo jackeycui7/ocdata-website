@@ -36,6 +36,12 @@ export default async function MinersPage() {
             ))}
           </div>
 
+          {miners.length === 0 ? (
+            <div className="border border-border rounded-lg py-20 flex flex-col items-center justify-center text-center">
+              <p className="text-text-muted text-sm font-medium">No miners currently registered.</p>
+              <p className="text-text-dim text-xs font-mono mt-2">Run the clawtroop crawler and register via the platform API to start mining.</p>
+            </div>
+          ) : (
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -85,6 +91,7 @@ export default async function MinersPage() {
               </table>
             </div>
           </div>
+          )}
         </div>
       </main>
       <Footer />

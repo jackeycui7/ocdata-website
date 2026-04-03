@@ -1,10 +1,15 @@
 import Link from "next/link";
-import { formatNumber } from "@/lib/mock";
 import { loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 export const revalidate = 30;
+
+const STATUS_STYLE: Record<string, string> = {
+  open: "text-success",
+  completed: "text-text-muted",
+  failed: "text-danger",
+};
 
 export default async function EpochsPage() {
   const epochs = await loadEpochs();
@@ -27,40 +32,37 @@ export default async function EpochsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim bg-bg-surface">
-                    <th className="text-left px-6 py-3">Epoch</th>
-                    <th className="text-left px-4 py-3">Date</th>
-                    <th className="text-right px-4 py-3">Qualified</th>
-                    <th className="text-right px-4 py-3">Miner Pool</th>
-                    <th className="text-right px-4 py-3">Validator Pool</th>
-                    <th className="text-right px-4 py-3">Owner</th>
-                    <th className="text-right px-6 py-3">Total Emission</th>
+                    <th className="text-left px-6 py-3">Date</th>
+                    <th className="text-left px-4 py-3">Status</th>
+                    <th className="text-right px-4 py-3">Submissions</th>
+                    <th className="text-right px-4 py-3">Confirmed</th>
+                    <th className="text-right px-6 py-3">Rejected</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
                   {epochs.map((ep) => (
                     <tr key={ep.id} className="hover:bg-bg-surface transition-colors group">
                       <td className="px-6 py-3">
-                        <Link href={`/epochs/${ep.id}`} className="font-mono tabular-nums group-hover:text-accent transition-colors">
-                          #{ep.id}
+                        <Link
+                          href={`/epochs/${ep.id}`}
+                          className="font-mono tabular-nums group-hover:text-accent transition-colors"
+                        >
+                          {ep.startTime?.split("T")[0] ?? ep.id}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-xs text-text-muted">
-                        {ep.startTime.split("T")[0]}
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-mono uppercase tracking-wider ${STATUS_STYLE[ep.status] || "text-text-dim"}`}>
+                          {ep.status}
+                        </span>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">
-                        {ep.qualifiedMiners}/{ep.totalMiners}
+                        {ep.summary.total}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">
-                        {formatNumber(ep.minerPool)}
+                      <td className="px-4 py-3 font-mono text-xs text-success tabular-nums text-right">
+                        {ep.summary.confirmed}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">
-                        {formatNumber(ep.validatorPool)}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">
-                        {formatNumber(ep.ownerPool)}
-                      </td>
-                      <td className="px-6 py-3 font-mono text-xs tabular-nums text-right font-medium">
-                        {formatNumber(ep.totalEmission)}
+                      <td className="px-6 py-3 font-mono text-xs text-danger tabular-nums text-right">
+                        {ep.summary.rejected}
                       </td>
                     </tr>
                   ))}

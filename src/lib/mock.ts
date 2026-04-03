@@ -38,9 +38,11 @@ export interface DatasetInfo {
 }
 
 export interface EpochInfo {
-  id: number;
+  id: string;           // "epoch_20260402"
   startTime: string;
   endTime: string;
+  status: "open" | "completed" | "failed";
+  summary: { total: number; confirmed: number; rejected: number };
   qualifiedMiners: number;
   totalMiners: number;
   totalEmission: number;
@@ -154,17 +156,26 @@ export const mockDatasets: DatasetInfo[] = [
 ];
 
 export const mockEpochs: EpochInfo[] = Array.from({ length: 20 }, (_, i) => {
-  const id = 142 - i;
+  // Generate date-based IDs (today = 2026-04-03, going back)
+  const base_date = new Date(Date.UTC(2026, 3, 3)); // April 3, 2026
+  base_date.setUTCDate(base_date.getUTCDate() - i);
+  const dateStr = base_date.toISOString().split("T")[0];
+  const id = `epoch_${dateStr.replace(/-/g, "")}`;
+  const status: "open" | "completed" | "failed" = i === 0 ? "open" : "completed";
   const base = 500000 * Math.pow(0.996844, i);
+  const total = i === 0 ? 0 : Math.round(base / 80);
+  const confirmed = Math.round(total * 0.88);
   return {
     id,
-    startTime: `2026-03-${String(31 - i).padStart(2, "0")}T00:00:00Z`,
-    endTime: `2026-03-${String(31 - i).padStart(2, "0")}T23:59:59Z`,
-    qualifiedMiners: Math.max(80, 142 - i * 3 + Math.floor(Math.random() * 10)),
-    totalMiners: Math.max(100, 160 - i * 2 + Math.floor(Math.random() * 8)),
-    totalEmission: Math.round(base),
-    minerPool: Math.round(base * 0.41),
-    validatorPool: Math.round(base * 0.41),
-    ownerPool: Math.round(base * 0.18),
+    startTime: `${dateStr}T00:00:00Z`,
+    endTime: `${dateStr}T23:59:59Z`,
+    status,
+    summary: { total, confirmed, rejected: total - confirmed },
+    qualifiedMiners: i === 0 ? 0 : Math.max(80, 142 - i * 3 + (i % 4)),
+    totalMiners: i === 0 ? 0 : Math.max(100, 160 - i * 2 + (i % 5)),
+    totalEmission: i === 0 ? 0 : Math.round(base),
+    minerPool: i === 0 ? 0 : Math.round(base * 0.41),
+    validatorPool: i === 0 ? 0 : Math.round(base * 0.41),
+    ownerPool: i === 0 ? 0 : Math.round(base * 0.18),
   };
 });

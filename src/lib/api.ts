@@ -38,11 +38,14 @@ export interface ApiDataset {
   creation_fee: string;
   status: string;
   source_domains: string[];
-  schema: Record<string, { type: string; required: boolean }>;
+  schema: Record<string, unknown>;
   dedup_fields: string[];
-  refresh_interval: string | null;
+  url_patterns?: string[];
+  refresh_interval?: string | null;
   created_at: string;
   updated_at: string;
+  reviewed_at?: string;
+  // reviewed_by is intentionally omitted — internal field, not displayed
   total_entries: number;
 }
 
@@ -60,10 +63,20 @@ export interface ApiSubmission {
 }
 
 export interface ApiEpoch {
-  epoch_id: string;
-  start_time: string;
-  end_time: string;
-  status: string;
+  id: string;           // e.g. "epoch_20260402"
+  epoch_id: string;     // e.g. "2026-04-02" (date string)
+  status: "open" | "completed" | "failed";
+  summary: {
+    total: number;
+    confirmed: number;
+    rejected: number;
+  };
+  window_start_at: string;
+  window_end_at: string;
+  settlement_started_at?: string;
+  settlement_completed_at?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export async function fetchDatasets(): Promise<ApiDataset[] | null> {

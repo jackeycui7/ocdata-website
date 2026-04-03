@@ -20,6 +20,7 @@ export default async function ValidatorsPage() {
           <div className="mb-10">
             <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Network</span>
             <h1 className="text-3xl font-bold mt-2 tracking-tight">Validators</h1>
+            <p className="text-xs font-mono text-text-dim mt-2">No validator API available — showing demo data</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">

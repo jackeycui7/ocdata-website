@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EpochEmissionChart from "@/components/charts/EpochEmissionChart";
 import CreditDistChart from "@/components/charts/CreditDistChart";
+import AutoRefresh from "@/components/AutoRefresh";
 
 export const revalidate = 30;
 
@@ -16,7 +17,7 @@ export default async function DashboardPage() {
   ]);
 
   const stats = [
-    { label: "Current Epoch", value: dashStats.currentEpoch ? `#${dashStats.currentEpoch}` : "—", sub: dashStats.source === "api" ? "live" : "14h 23m remaining" },
+    { label: "Current Epoch", value: dashStats.currentEpoch || "—", sub: dashStats.source === "api" ? "live" : "mock data" },
     { label: "Miners Online", value: String(dashStats.minersOnline), sub: `of ${dashStats.minersTotal} total` },
     { label: "Validators Online", value: String(dashStats.validatorsOnline), sub: `of ${dashStats.validatorsTotal} total` },
     { label: "Submissions", value: formatNumber(dashStats.totalSubmissions), sub: "this epoch" },
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
   ];
 
   const emissionData = [...epochs].reverse().map((ep) => ({
-    epoch: `#${ep.id}`,
+    epoch: ep.startTime.split("T")[0].slice(5), // "04-02"
     minerPool: ep.minerPool,
     validatorPool: ep.validatorPool,
     ownerPool: ep.ownerPool,
@@ -58,6 +59,7 @@ export default async function DashboardPage() {
 
   return (
     <>
+      <AutoRefresh />
       <Navbar />
       <main className="pt-14">
         <div className="max-w-7xl mx-auto px-6 py-10">
@@ -129,21 +131,25 @@ export default async function DashboardPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                        <th className="text-left px-6 py-3">Epoch</th>
-                        <th className="text-left px-4 py-3">Qualified</th>
-                        <th className="text-right px-4 py-3">Miner Pool</th>
-                        <th className="text-right px-4 py-3">Validator Pool</th>
-                        <th className="text-right px-6 py-3">Total</th>
+                        <th className="text-left px-6 py-3">Date</th>
+                        <th className="text-left px-4 py-3">Status</th>
+                        <th className="text-right px-4 py-3">Submissions</th>
+                        <th className="text-right px-4 py-3">Confirmed</th>
+                        <th className="text-right px-6 py-3">Rejected</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border-subtle">
                       {epochs.slice(0, 8).map((ep) => (
                         <tr key={ep.id} className="hover:bg-bg-surface transition-colors">
-                          <td className="px-6 py-3 font-mono tabular-nums">#{ep.id}</td>
-                          <td className="px-4 py-3 font-mono tabular-nums text-text-muted">{ep.qualifiedMiners}/{ep.totalMiners}</td>
-                          <td className="px-4 py-3 font-mono tabular-nums text-right text-text-muted">{formatNumber(ep.minerPool)}</td>
-                          <td className="px-4 py-3 font-mono tabular-nums text-right text-text-muted">{formatNumber(ep.validatorPool)}</td>
-                          <td className="px-6 py-3 font-mono tabular-nums text-right font-medium">{formatNumber(ep.totalEmission)}</td>
+                          <td className="px-6 py-3 font-mono tabular-nums">{ep.startTime.split("T")[0]}</td>
+                          <td className="px-4 py-3 font-mono text-xs uppercase tracking-wider">
+                            <span className={ep.status === "open" ? "text-success" : ep.status === "failed" ? "text-danger" : "text-text-muted"}>
+                              {ep.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono tabular-nums text-right text-text-muted">{ep.summary.total}</td>
+                          <td className="px-4 py-3 font-mono tabular-nums text-right text-success">{ep.summary.confirmed}</td>
+                          <td className="px-6 py-3 font-mono tabular-nums text-right text-danger">{ep.summary.rejected}</td>
                         </tr>
                       ))}
                     </tbody>
