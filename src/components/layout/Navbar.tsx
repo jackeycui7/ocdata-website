@@ -7,7 +7,6 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Datasets", href: "/datasets" },
   { label: "Miners", href: "/miners" },
-  { label: "Validators", href: "/validators" },
   { label: "Epochs", href: "/epochs" },
   { label: "Rewards", href: "/rewards" },
   { label: "Docs", href: "/docs" },

@@ -5,11 +5,9 @@ import * as api from "./api";
 import {
   mockDatasets,
   mockMiners,
-  mockValidators,
   mockEpochs,
   type DatasetInfo,
   type MinerStat,
-  type ValidatorStat,
   type EpochInfo,
   getTier,
 } from "./mock";
@@ -131,13 +129,6 @@ export async function loadMiners(): Promise<MinerStat[]> {
   return mockMiners;
 }
 
-// --- Validators ---
-// No public list endpoint yet, use mock
-
-export async function loadValidators(): Promise<ValidatorStat[]> {
-  return mockValidators;
-}
-
 // --- Epochs ---
 
 export async function loadEpochs(): Promise<EpochInfo[]> {
@@ -219,8 +210,8 @@ export async function loadDashboardStats(): Promise<DashboardStats> {
       currentEpoch,
       minersOnline: miners.filter((m) => m.online).length,
       minersTotal: miners.length,
-      validatorsOnline: mockValidators.filter((v) => v.online).length,
-      validatorsTotal: mockValidators.length,
+      validatorsOnline: 0,
+      validatorsTotal: 0,
       totalSubmissions: currentEpochSummary?.total ?? 0,
       totalEvaluations: 0,
       datasetCount: datasets?.length || mockDatasets.length,
@@ -232,10 +223,10 @@ export async function loadDashboardStats(): Promise<DashboardStats> {
     currentEpoch: mockEpochs[0]?.startTime.split("T")[0] || "",
     minersOnline: mockMiners.filter((m) => m.online).length,
     minersTotal: mockMiners.length,
-    validatorsOnline: mockValidators.filter((v) => v.online).length,
-    validatorsTotal: mockValidators.length,
+    validatorsOnline: 0,
+    validatorsTotal: 0,
     totalSubmissions: mockMiners.reduce((s, m) => s + m.taskCount, 0),
-    totalEvaluations: mockValidators.reduce((s, v) => s + v.evalCount, 0),
+    totalEvaluations: 0,
     datasetCount: mockDatasets.length,
     source: "mock",
   };
