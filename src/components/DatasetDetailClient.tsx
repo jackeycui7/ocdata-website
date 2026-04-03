@@ -4,42 +4,30 @@ import { useState } from "react";
 import type { DatasetInfo } from "@/lib/mock";
 import { shortenAddress } from "@/lib/mock";
 
-const TABS = ["Overview", "Schema", "Submissions", "Miners"] as const;
+const TABS = ["Overview", "Schema", "Submissions"] as const;
 type Tab = typeof TABS[number];
 
-// Mock submissions for the dataset
-function mockSubmissions() {
-  const miners = ["0xA1b2C3d4E5f6789012345678901234567890abcd", "0xB2c3D4e5F67890123456789012345678901bCDeF", "0xC3d4E5f678901234567890123456789012CdEf01"];
-  return Array.from({ length: 12 }, (_, i) => ({
-    url: `https://example.com/page-${1000 + i}`,
-    miner: miners[i % miners.length],
-    time: `${i * 3 + 1}m ago`,
-    status: i < 8 ? "confirmed" : i < 10 ? "pending" : "rejected",
-  }));
+interface SubmissionRow {
+  url: string;
+  miner: string;
+  time: string;
+  status: string;
 }
 
-function mockDatasetMiners() {
-  return [
-    { address: "0xA1b2C3d4E5f6789012345678901234567890abcd", submissions: 420, avgScore: 94.2 },
-    { address: "0xB2c3D4e5F67890123456789012345678901bCDeF", submissions: 310, avgScore: 91.8 },
-    { address: "0xC3d4E5f678901234567890123456789012CdEf01", submissions: 180, avgScore: 88.1 },
-    { address: "0xD4e5F6789012345678901234567890123dEF0123", submissions: 95, avgScore: 85.4 },
-  ];
+function relativeTime(dateStr: string): string {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
-export default function DatasetDetailClient({ ds }: { ds: DatasetInfo }) {
+export default function DatasetDetailClient({ ds, submissions }: { ds: DatasetInfo; submissions: SubmissionRow[] }) {
   const [tab, setTab] = useState<Tab>("Overview");
   const schemaEntries = Object.entries(ds.schema);
-  const submissions = mockSubmissions();
-  const dsMiners = mockDatasetMiners();
-
-  const confirmed = Math.round(ds.entries * 0.82);
-  const pending = Math.round(ds.entries * 0.12);
-  const rejected = ds.entries - confirmed - pending;
 
   return (
     <>
-      {/* Tab bar */}
       <div className="flex gap-1 border-b border-border mb-8">
         {TABS.map((t) => (
           <button
@@ -54,39 +42,24 @@ export default function DatasetDetailClient({ ds }: { ds: DatasetInfo }) {
         ))}
       </div>
 
-      {/* Overview */}
       {tab === "Overview" && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
             {[
               { label: "Total Entries", value: ds.entries.toLocaleString() },
-              { label: "Confirmed", value: confirmed.toLocaleString(), color: "text-success" },
-              { label: "Pending", value: pending.toLocaleString(), color: "text-text-muted" },
-              { label: "Rejected", value: rejected.toLocaleString(), color: "text-danger" },
+              { label: "Schema Fields", value: String(ds.fields) },
+              { label: "Domains", value: ds.domains.join(", ") },
+              { label: "Refresh", value: ds.refresh },
             ].map((s) => (
               <div key={s.label} className="bg-bg-surface p-5">
                 <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
-                <div className={`font-mono text-lg font-semibold tabular-nums ${s.color || ""}`}>{s.value}</div>
+                <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
               </div>
             ))}
-          </div>
-          <div className="border border-border rounded-lg p-5">
-            <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-3">Submission Distribution</div>
-            <div className="flex h-3 rounded-full overflow-hidden bg-border">
-              <div className="bg-success/60 h-full" style={{ width: `${(confirmed / ds.entries) * 100}%` }} />
-              <div className="bg-text-muted/30 h-full" style={{ width: `${(pending / ds.entries) * 100}%` }} />
-              <div className="bg-danger/40 h-full" style={{ width: `${(rejected / ds.entries) * 100}%` }} />
-            </div>
-            <div className="flex gap-6 mt-3 text-xs">
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-success/60" />Confirmed {((confirmed / ds.entries) * 100).toFixed(0)}%</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-text-muted/30" />Pending {((pending / ds.entries) * 100).toFixed(0)}%</span>
-              <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-sm bg-danger/40" />Rejected {((rejected / ds.entries) * 100).toFixed(0)}%</span>
-            </div>
           </div>
         </div>
       )}
 
-      {/* Schema */}
       {tab === "Schema" && (
         <div className="space-y-6">
           <div className="border border-border rounded-lg overflow-hidden">
@@ -122,57 +95,36 @@ export default function DatasetDetailClient({ ds }: { ds: DatasetInfo }) {
         </div>
       )}
 
-      {/* Submissions */}
       {tab === "Submissions" && (
         <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                <th className="text-left px-6 py-3">URL</th>
-                <th className="text-left px-4 py-3">Miner</th>
-                <th className="text-right px-4 py-3">Time</th>
-                <th className="text-center px-6 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-subtle">
-              {submissions.map((s, i) => (
-                <tr key={i} className="hover:bg-bg-surface transition-colors">
-                  <td className="px-6 py-3 font-mono text-xs text-text-muted truncate max-w-[240px]">{s.url}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-muted">{shortenAddress(s.miner)}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-dim text-right">{s.time}</td>
-                  <td className="px-6 py-3 text-center">
-                    <span className={`text-[10px] font-mono uppercase tracking-wider ${
-                      s.status === "confirmed" ? "text-success" : s.status === "pending" ? "text-text-dim" : "text-danger"
-                    }`}>{s.status}</span>
-                  </td>
+          {submissions.length > 0 ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
+                  <th className="text-left px-6 py-3">URL</th>
+                  <th className="text-left px-4 py-3">Miner</th>
+                  <th className="text-right px-4 py-3">Time</th>
+                  <th className="text-center px-6 py-3">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Miners */}
-      {tab === "Miners" && (
-        <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                <th className="text-left px-6 py-3">Miner</th>
-                <th className="text-right px-4 py-3">Submissions</th>
-                <th className="text-right px-6 py-3">Avg Score</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-subtle">
-              {dsMiners.map((m) => (
-                <tr key={m.address} className="hover:bg-bg-surface transition-colors">
-                  <td className="px-6 py-3 font-mono text-sm">{shortenAddress(m.address)}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{m.submissions}</td>
-                  <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">{m.avgScore.toFixed(1)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {submissions.map((s, i) => (
+                  <tr key={i} className="hover:bg-bg-surface transition-colors">
+                    <td className="px-6 py-3 font-mono text-xs text-text-muted truncate max-w-[240px]">{s.url}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-text-muted">{shortenAddress(s.miner)}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-text-dim text-right">{relativeTime(s.time)}</td>
+                    <td className="px-6 py-3 text-center">
+                      <span className={`text-[10px] font-mono uppercase tracking-wider ${
+                        s.status === "confirmed" ? "text-success" : s.status === "pending" ? "text-text-dim" : "text-danger"
+                      }`}>{s.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="px-6 py-10 text-center text-sm text-text-dim">No submissions for this dataset yet.</div>
+          )}
         </div>
       )}
     </>

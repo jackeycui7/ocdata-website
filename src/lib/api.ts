@@ -1,5 +1,4 @@
 // API client for Platform Service
-// Tries real API first, falls back to mock data if unavailable
 
 const PLATFORM_API = process.env.NEXT_PUBLIC_PLATFORM_API || "http://101.47.73.95";
 

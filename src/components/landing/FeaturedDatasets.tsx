@@ -10,25 +10,26 @@ interface DatasetRow {
   dedupKey: string;
 }
 
-const FALLBACK_DATASETS: DatasetRow[] = [
-  { id: "ds_amazon_products", name: "Amazon Products", domain: "amazon.com", fields: 98, dedupKey: "asin + marketplace" },
-  { id: "ds_linkedin_profiles", name: "LinkedIn Profiles", domain: "linkedin.com", fields: 91, dedupKey: "linkedin_num_id" },
-  { id: "ds_arxiv", name: "arXiv Papers", domain: "arxiv.org", fields: 88, dedupKey: "arxiv_id" },
-  { id: "ds_wiki", name: "Wikipedia", domain: "wikipedia.org", fields: 70, dedupKey: "page_id + language" },
-  { id: "ds_amazon_reviews", name: "Amazon Reviews", domain: "amazon.com", fields: 49, dedupKey: "review_id + marketplace" },
-  { id: "ds_linkedin_jobs", name: "LinkedIn Jobs", domain: "linkedin.com", fields: 44, dedupKey: "job_posting_id" },
-  { id: "ds_linkedin_company", name: "LinkedIn Company", domain: "linkedin.com", fields: 41, dedupKey: "company_id" },
-  { id: "ds_linkedin_posts", name: "LinkedIn Posts", domain: "linkedin.com", fields: 38, dedupKey: "post_id" },
-  { id: "ds_amazon_sellers", name: "Amazon Sellers", domain: "amazon.com", fields: 29, dedupKey: "seller_id + marketplace" },
-];
-
 interface Props {
-  datasets?: DatasetRow[];
+  datasets: DatasetRow[];
 }
 
 export default function FeaturedDatasets({ datasets }: Props) {
-  const data = datasets && datasets.length > 0 ? datasets : FALLBACK_DATASETS;
-  const maxFields = Math.max(...data.map((d) => d.fields));
+  if (datasets.length === 0) {
+    return (
+      <section className="max-w-7xl mx-auto px-6 py-28">
+        <div className="mb-14">
+          <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Network</span>
+          <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">DataSets</h2>
+          <p className="text-text-muted max-w-lg">
+            No active datasets yet. Check back soon.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const maxFields = Math.max(...datasets.map((d) => d.fields));
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-28">
@@ -40,7 +41,7 @@ export default function FeaturedDatasets({ datasets }: Props) {
         className="mb-14"
       >
         <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Network</span>
-        <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">{data.length} DataSets. Production-ready schemas.</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">{datasets.length} DataSets. Production-ready schemas.</h2>
         <p className="text-text-muted max-w-lg">
           Each DataSet defines a complete extraction schema — from required fields to dedup logic.
           Agents mine any DataSet they choose.
@@ -55,7 +56,7 @@ export default function FeaturedDatasets({ datasets }: Props) {
           <div className="col-span-5 sm:col-span-4 text-right hidden md:block">Dedup Key</div>
         </div>
 
-        {data.map((ds, i) => (
+        {datasets.map((ds, i) => (
           <motion.div
             key={ds.id}
             initial={{ opacity: 0 }}

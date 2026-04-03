@@ -1,5 +1,6 @@
 import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
 import { loadMiners, loadEpochs } from "@/lib/data";
+import * as api from "@/lib/api";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MinerTrendChart from "@/components/charts/MinerTrendChart";
@@ -17,16 +18,33 @@ export default async function MinerDetailPage({ params }: { params: { address: s
   const qualified = miner.taskCount >= 80 && miner.avgScore >= 60;
   const epochs = await loadEpochs();
 
-  const epochHistory = epochs.slice(0, 10).map((ep, i) => ({
-    epoch: ep.id,
-    taskCount: Math.max(0, miner.taskCount - i * 50 + (i % 3) * 15),
-    avgScore: Math.max(55, miner.avgScore - i * 1.5 + (i % 3) * 1.2),
-    qualified: i < 7,
-    reward: Math.max(0, miner.reward - i * 200 + (i % 3) * 50),
-  }));
+  const completedEpochs = epochs.filter((e) => e.status === "completed").slice(0, 10);
+
+  const epochHistory: { epoch: string; taskCount: number; avgScore: number; qualified: boolean; reward: number }[] = [];
+
+  for (const ep of completedEpochs) {
+    try {
+      const snapshot = await api.fetchEpochSnapshot(ep.id);
+      const settlement = await api.fetchEpochSettlement(ep.id);
+      const snap = snapshot?.miners[miner.address];
+      const settle = settlement?.miners.find((m) => m.miner_id === miner.address);
+
+      if (snap || settle) {
+        epochHistory.push({
+          epoch: ep.startTime.split("T")[0],
+          taskCount: snap?.task_count ?? settle?.task_count ?? 0,
+          avgScore: snap?.avg_score ?? settle?.avg_score ?? 0,
+          qualified: settle?.qualified ?? false,
+          reward: settle?.reward_amount ?? 0,
+        });
+      }
+    } catch {
+      // skip epoch if API fails
+    }
+  }
 
   const trendData = [...epochHistory].reverse().map((eh) => ({
-    epoch: `#${eh.epoch}`,
+    epoch: eh.epoch,
     submissions: eh.taskCount,
     avgScore: Number(eh.avgScore.toFixed(1)),
   }));
@@ -71,47 +89,53 @@ export default async function MinerDetailPage({ params }: { params: { address: s
             ))}
           </div>
 
-          <div className="border border-border rounded-lg overflow-hidden mb-8">
-            <div className="px-6 py-4 border-b border-border bg-bg-surface">
-              <h2 className="text-sm font-semibold">Submission Trend</h2>
+          {trendData.length > 0 && (
+            <div className="border border-border rounded-lg overflow-hidden mb-8">
+              <div className="px-6 py-4 border-b border-border bg-bg-surface">
+                <h2 className="text-sm font-semibold">Submission Trend</h2>
+              </div>
+              <div className="p-4">
+                <MinerTrendChart data={trendData} />
+              </div>
             </div>
-            <div className="p-4">
-              <MinerTrendChart data={trendData} />
-            </div>
-          </div>
+          )}
 
           <div className="border border-border rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-border bg-bg-surface">
               <h2 className="text-sm font-semibold">Epoch History</h2>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
-                    <th className="text-left px-6 py-3">Epoch</th>
-                    <th className="text-right px-4 py-3">Tasks</th>
-                    <th className="text-right px-4 py-3">Avg Score</th>
-                    <th className="text-center px-4 py-3">Qualified</th>
-                    <th className="text-right px-6 py-3">Reward</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-subtle">
-                  {epochHistory.map((eh) => (
-                    <tr key={eh.epoch} className="hover:bg-bg-surface transition-colors">
-                      <td className="px-6 py-3 font-mono tabular-nums">#{eh.epoch}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{eh.taskCount}</td>
-                      <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{eh.avgScore.toFixed(1)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-mono ${eh.qualified ? "text-success" : "text-danger"}`}>
-                          {eh.qualified ? "yes" : "no"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">{eh.qualified ? formatNumber(eh.reward) : "—"}</td>
+            {epochHistory.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs font-mono uppercase tracking-wider text-text-dim">
+                      <th className="text-left px-6 py-3">Epoch</th>
+                      <th className="text-right px-4 py-3">Tasks</th>
+                      <th className="text-right px-4 py-3">Avg Score</th>
+                      <th className="text-center px-4 py-3">Qualified</th>
+                      <th className="text-right px-6 py-3">Reward</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border-subtle">
+                    {epochHistory.map((eh) => (
+                      <tr key={eh.epoch} className="hover:bg-bg-surface transition-colors">
+                        <td className="px-6 py-3 font-mono tabular-nums">{eh.epoch}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{eh.taskCount}</td>
+                        <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{eh.avgScore.toFixed(1)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`text-xs font-mono ${eh.qualified ? "text-success" : "text-danger"}`}>
+                            {eh.qualified ? "yes" : "no"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">{eh.qualified ? formatNumber(eh.reward) : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="px-6 py-10 text-center text-sm text-text-dim">No epoch history available for this miner.</div>
+            )}
           </div>
         </div>
       </main>

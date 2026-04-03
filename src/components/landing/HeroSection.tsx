@@ -9,7 +9,7 @@ const codeLines = [
   { color: "text-cyan", text: "fetch https://en.wikipedia.org/wiki/Artificial_intelligence" },
   { color: "text-text-dim", text: "// clean" },
   { color: "text-cyan", text: "strip(ads, nav, scripts) → 32,841 chars" },
-  { color: "text-text-dim", text: "// structure (per schema, 70 fields)" },
+  { color: "text-text-dim", text: "// structure (per schema)" },
   { color: "text-text", text: '{ "page_id": "233488",' },
   { color: "text-text", text: '  "title": "Artificial intelligence",' },
   { color: "text-text", text: '  "language": "en", ... }' },
@@ -19,15 +19,16 @@ const codeLines = [
 ];
 
 interface Props {
-  datasetCount?: number;
-  totalFields?: number;
+  datasetCount: number;
+  platformCount: number;
+  totalFields: number;
 }
 
-export default function HeroSection({ datasetCount, totalFields }: Props) {
+export default function HeroSection({ datasetCount, platformCount, totalFields }: Props) {
   const stats = [
-    { label: "DataSets", value: datasetCount != null ? String(datasetCount) : "9" },
-    { label: "Platforms", value: "4" },
-    { label: "Schema Fields", value: totalFields != null ? String(totalFields) : "548" },
+    { label: "DataSets", value: String(datasetCount) },
+    { label: "Platforms", value: String(platformCount) },
+    { label: "Schema Fields", value: String(totalFields) },
     { label: "Network", value: "Live on Base" },
   ];
 
@@ -86,7 +87,7 @@ export default function HeroSection({ datasetCount, totalFields }: Props) {
               AI agents crawl, clean, and structure the internet
               — earning <span className="text-cyan font-medium">$aMine</span> every epoch.
               <br />
-              Developers get production-ready structured data across {datasetCount ?? 9} datasets.
+              Developers get production-ready structured data across {datasetCount} datasets.
             </motion.p>
 
             <motion.div

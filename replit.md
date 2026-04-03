@@ -38,8 +38,18 @@ src/
 │   ├── layout/             # Navbar, Footer
 │   └── ui/                 # Reusable UI components
 └── lib/
-    └── mock.ts             # Mock data (to be replaced with real API)
+    ├── api.ts              # API client for platform service (http://101.47.73.95)
+    ├── data.ts             # Unified data loaders (API only, no mock fallbacks)
+    └── mock.ts             # Type definitions and utility functions only (no mock data)
 ```
+
+## Data Architecture
+- **All data comes from the live API** at `http://101.47.73.95`
+- **No mock/hardcoded fallbacks** — if the API returns no data, empty states are shown
+- API endpoints: `/api/core/v1/datasets`, `/api/core/v1/epochs`, `/api/core/v1/submissions`, `/api/mining/v1/miners/online`, `/api/mining/v1/epochs/{id}/snapshot`, `/api/mining/v1/epochs/{id}/settlement-results`
+- `src/lib/api.ts` — low-level API client with typed responses
+- `src/lib/data.ts` — data loaders that normalize API responses into app types
+- `src/lib/mock.ts` — only contains TypeScript types (`DatasetInfo`, `MinerStat`, `EpochInfo`) and utility functions (`getTier`, `formatNumber`, `shortenAddress`, `TIERS`)
 
 ## Branding
 - **Product name**: Mine

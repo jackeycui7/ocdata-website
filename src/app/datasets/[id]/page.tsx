@@ -1,4 +1,4 @@
-import { loadDataset } from "@/lib/data";
+import { loadDataset, loadRecentSubmissions } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import DatasetDetailClient from "@/components/DatasetDetailClient";
@@ -12,6 +12,17 @@ export default async function DatasetDetailPage({ params }: { params: { id: stri
 
   const schemaEntries = Object.entries(ds.schema);
   const requiredCount = schemaEntries.filter(([, v]) => v.required).length;
+
+  const allSubmissions = await loadRecentSubmissions();
+  const dsSubmissions = allSubmissions
+    .filter((s) => s.dataset_id === params.id)
+    .slice(0, 20)
+    .map((s) => ({
+      url: s.original_url || s.normalized_url,
+      miner: s.miner_id,
+      time: s.created_at,
+      status: s.status,
+    }));
 
   return (
     <>
@@ -58,7 +69,7 @@ export default async function DatasetDetailPage({ params }: { params: { id: stri
             ))}
           </div>
 
-          <DatasetDetailClient ds={ds} />
+          <DatasetDetailClient ds={ds} submissions={dsSubmissions} />
         </div>
       </main>
       <Footer />

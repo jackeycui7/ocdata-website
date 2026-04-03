@@ -1,20 +1,11 @@
-// Unified data loader: tries real API, falls back to mock
-// When API auth is resolved, just set NEXT_PUBLIC_PLATFORM_API and data flows through
-
 import * as api from "./api";
 import {
-  mockDatasets,
-  mockMiners,
-  mockEpochs,
   type DatasetInfo,
   type MinerStat,
   type EpochInfo,
   getTier,
 } from "./mock";
 
-// Normalize dataset schema — API returns either:
-//   flat:        { field: { type: string, required: boolean } }
-//   JSON Schema: { $schema, title, properties: { field: { type, ... } }, required: [...] }
 function normalizeSchema(raw: Record<string, unknown>): Record<string, { type: string; required: boolean }> {
   if ("properties" in raw || "$schema" in raw) {
     const properties = (raw.properties as Record<string, { type?: string | string[] }>) ?? {};
@@ -31,7 +22,6 @@ function normalizeSchema(raw: Record<string, unknown>): Record<string, { type: s
     }
     return result;
   }
-  // Flat format
   const result: Record<string, { type: string; required: boolean }> = {};
   for (const [field, spec] of Object.entries(raw)) {
     if (spec && typeof spec === "object" && "type" in spec) {
@@ -41,8 +31,6 @@ function normalizeSchema(raw: Record<string, unknown>): Record<string, { type: s
   }
   return result;
 }
-
-// --- Datasets ---
 
 export async function loadDatasets(): Promise<DatasetInfo[]> {
   const remote = await api.fetchDatasets();
@@ -55,7 +43,7 @@ export async function loadDatasets(): Promise<DatasetInfo[]> {
         status: d.status as DatasetInfo["status"],
         domains: d.source_domains,
         entries: d.total_entries,
-        miners: 0, // not available from core API directly
+        miners: 0,
         fields: Object.keys(schema).length,
         refresh: d.refresh_interval || "never",
         creator: d.creator,
@@ -64,7 +52,7 @@ export async function loadDatasets(): Promise<DatasetInfo[]> {
       };
     });
   }
-  return mockDatasets;
+  return [];
 }
 
 export async function loadDataset(id: string): Promise<DatasetInfo | null> {
@@ -85,15 +73,12 @@ export async function loadDataset(id: string): Promise<DatasetInfo | null> {
       schema,
     };
   }
-  return mockDatasets.find((d) => d.id === id) || null;
+  return null;
 }
-
-// --- Miners ---
 
 export async function loadMiners(): Promise<MinerStat[]> {
   const remote = await api.fetchMinersOnline();
   if (remote !== null) {
-    // Build base miner list
     const miners: MinerStat[] = remote.map((m) => ({
       address: m.miner_id,
       credit: m.credit,
@@ -104,7 +89,6 @@ export async function loadMiners(): Promise<MinerStat[]> {
       online: m.online,
     }));
 
-    // Enrich with snapshot from most recent completed epoch
     try {
       const epochs = await api.fetchCoreEpochs(1, 5);
       const completedEpoch = epochs?.find((e) => e.status === "completed");
@@ -121,21 +105,19 @@ export async function loadMiners(): Promise<MinerStat[]> {
         }
       }
     } catch {
-      // snapshot enrichment is best-effort; ignore errors
+      // snapshot enrichment is best-effort
     }
 
     return miners;
   }
-  return mockMiners;
+  return [];
 }
-
-// --- Epochs ---
 
 export async function loadEpochs(): Promise<EpochInfo[]> {
   const remote = await api.fetchCoreEpochs(1, 50);
   if (remote && remote.length > 0) {
     return remote
-      .filter((e) => e.epoch_id !== "2099-12-31") // filter test/placeholder epochs
+      .filter((e) => e.epoch_id !== "2099-12-31")
       .map((e) => ({
         id: e.id,
         startTime: e.window_start_at,
@@ -150,7 +132,7 @@ export async function loadEpochs(): Promise<EpochInfo[]> {
         ownerPool: 0,
       }));
   }
-  return mockEpochs;
+  return [];
 }
 
 export interface EpochSettlementData {
@@ -175,8 +157,6 @@ export async function loadEpochSnapshot(epochId: string): Promise<api.ApiEpochSn
   return api.fetchEpochSnapshot(epochId);
 }
 
-// --- Validators (sourced from latest completed epoch settlement) ---
-
 export interface ValidatorEpochStat {
   address: string;
   evalCount: number;
@@ -187,7 +167,7 @@ export interface ValidatorEpochStat {
 }
 
 export interface ValidatorsEpochData {
-  epochId: string;   // e.g. "2026-04-02"
+  epochId: string;
   validators: ValidatorEpochStat[];
 }
 
@@ -222,10 +202,8 @@ export async function loadRecentSubmissions() {
   return remote ?? [];
 }
 
-// --- Dashboard stats ---
-
 export interface DashboardStats {
-  currentEpoch: string;  // date string e.g. "2026-04-03", or "" if unknown
+  currentEpoch: string;
   minersOnline: number;
   minersTotal: number;
   validatorsOnline: number;
@@ -233,7 +211,6 @@ export interface DashboardStats {
   totalSubmissions: number;
   totalEvaluations: number;
   datasetCount: number;
-  source: "api" | "mock";
 }
 
 export async function loadDashboardStats(): Promise<DashboardStats> {
@@ -243,33 +220,18 @@ export async function loadDashboardStats(): Promise<DashboardStats> {
     api.fetchCoreEpochs(1, 5),
   ]);
 
-  if (miners !== null) {
-    const openEpoch = epochs?.find((e) => e.status === "open");
-    const currentEpoch = openEpoch?.epoch_id || epochs?.[0]?.epoch_id || "";
-    const currentEpochSummary = epochs?.find((e) => e.status === "open")?.summary;
-
-    return {
-      currentEpoch,
-      minersOnline: miners.filter((m) => m.online).length,
-      minersTotal: miners.length,
-      validatorsOnline: 0,
-      validatorsTotal: 0,
-      totalSubmissions: currentEpochSummary?.total ?? 0,
-      totalEvaluations: 0,
-      datasetCount: datasets?.length || mockDatasets.length,
-      source: "api",
-    };
-  }
+  const openEpoch = epochs?.find((e) => e.status === "open");
+  const currentEpoch = openEpoch?.epoch_id || epochs?.[0]?.epoch_id || "";
+  const currentEpochSummary = openEpoch?.summary;
 
   return {
-    currentEpoch: mockEpochs[0]?.startTime.split("T")[0] || "",
-    minersOnline: mockMiners.filter((m) => m.online).length,
-    minersTotal: mockMiners.length,
+    currentEpoch,
+    minersOnline: miners?.filter((m) => m.online).length ?? 0,
+    minersTotal: miners?.length ?? 0,
     validatorsOnline: 0,
     validatorsTotal: 0,
-    totalSubmissions: mockMiners.reduce((s, m) => s + m.taskCount, 0),
+    totalSubmissions: currentEpochSummary?.total ?? 0,
     totalEvaluations: 0,
-    datasetCount: mockDatasets.length,
-    source: "mock",
+    datasetCount: datasets?.length ?? 0,
   };
 }
