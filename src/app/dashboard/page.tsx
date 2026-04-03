@@ -1,5 +1,5 @@
 import { formatNumber, TIERS, getTier } from "@/lib/mock";
-import { loadDashboardStats, loadDatasets, loadMiners, loadEpochs } from "@/lib/data";
+import { loadDashboardStats, loadDatasets, loadMiners, loadEpochs, loadRecentSubmissions } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EpochEmissionChart from "@/components/charts/EpochEmissionChart";
@@ -8,12 +8,21 @@ import AutoRefresh from "@/components/AutoRefresh";
 
 export const revalidate = 30;
 
+function relativeTime(dateStr: string): string {
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
+}
+
 export default async function DashboardPage() {
-  const [dashStats, datasets, miners, epochs] = await Promise.all([
+  const [dashStats, datasets, miners, epochs, rawSubmissions] = await Promise.all([
     loadDashboardStats(),
     loadDatasets(),
     loadMiners(),
     loadEpochs(),
+    loadRecentSubmissions(),
   ]);
 
   const stats = [
@@ -28,19 +37,29 @@ export default async function DashboardPage() {
   const sortedDatasets = [...datasets].sort((a, b) => b.entries - a.entries);
   const maxEntries = sortedDatasets[0]?.entries || 1;
 
-  const recentSubmissions = [
-    { dataset: "LinkedIn Profiles", miner: "0xA1b2...abcd", time: "2s ago", status: "pending" },
-    { dataset: "Amazon Products", miner: "0xB2c3...CDeF", time: "8s ago", status: "pending" },
-    { dataset: "Wikipedia", miner: "0xC3d4...Ef01", time: "15s ago", status: "confirmed" },
-    { dataset: "arXiv Papers", miner: "0xE5f6...2345", time: "22s ago", status: "confirmed" },
-    { dataset: "Amazon Reviews", miner: "0xF678...4567", time: "31s ago", status: "pending" },
-    { dataset: "LinkedIn Jobs", miner: "0x0789...5678", time: "45s ago", status: "confirmed" },
-    { dataset: "LinkedIn Company", miner: "0x1890...7890", time: "52s ago", status: "confirmed" },
-    { dataset: "Amazon Sellers", miner: "0xA1b2...abcd", time: "1m ago", status: "confirmed" },
-  ];
+  // Build dataset id → name map for submissions
+  const datasetMap = new Map(datasets.map((d) => [d.id, d.name]));
+
+  const recentSubmissions = rawSubmissions.length > 0
+    ? rawSubmissions.slice(0, 8).map((s) => ({
+        dataset: datasetMap.get(s.dataset_id) || s.dataset_id,
+        miner: s.miner_id.length > 12 ? `${s.miner_id.slice(0, 6)}...${s.miner_id.slice(-4)}` : s.miner_id,
+        time: relativeTime(s.created_at),
+        status: s.status === "confirmed" ? "confirmed" : "pending",
+      }))
+    : [
+        { dataset: "LinkedIn Profiles", miner: "0xA1b2...abcd", time: "2s ago", status: "pending" },
+        { dataset: "Amazon Products", miner: "0xB2c3...CDeF", time: "8s ago", status: "pending" },
+        { dataset: "Wikipedia", miner: "0xC3d4...Ef01", time: "15s ago", status: "confirmed" },
+        { dataset: "arXiv Papers", miner: "0xE5f6...2345", time: "22s ago", status: "confirmed" },
+        { dataset: "Amazon Reviews", miner: "0xF678...4567", time: "31s ago", status: "pending" },
+        { dataset: "LinkedIn Jobs", miner: "0x0789...5678", time: "45s ago", status: "confirmed" },
+        { dataset: "LinkedIn Company", miner: "0x1890...7890", time: "52s ago", status: "confirmed" },
+        { dataset: "Amazon Sellers", miner: "0xA1b2...abcd", time: "1m ago", status: "confirmed" },
+      ];
 
   const emissionData = [...epochs].reverse().map((ep) => ({
-    epoch: ep.startTime.split("T")[0].slice(5), // "04-02"
+    epoch: ep.startTime.split("T")[0].slice(5),
     minerPool: ep.minerPool,
     validatorPool: ep.validatorPool,
     ownerPool: ep.ownerPool,
@@ -163,6 +182,9 @@ export default async function DashboardPage() {
                 <div className="px-5 py-4 border-b border-border bg-bg-surface flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
                   <h2 className="text-sm font-semibold">Live Submissions</h2>
+                  {rawSubmissions.length > 0 && (
+                    <span className="ml-auto text-[10px] font-mono text-success">live</span>
+                  )}
                 </div>
                 <div className="divide-y divide-border-subtle">
                   {recentSubmissions.map((sub, i) => (

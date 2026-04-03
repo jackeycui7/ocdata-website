@@ -2,13 +2,6 @@
 
 import { motion } from "framer-motion";
 
-const stats = [
-  { label: "DataSets", value: "9" },
-  { label: "Platforms", value: "4" },
-  { label: "Schema Fields", value: "548" },
-  { label: "Network", value: "Live on Base" },
-];
-
 const codeLines = [
   { color: "text-text-dim", text: "// discover" },
   { color: "text-accent-light", text: "GET active datasets → wikipedia, arxiv, linkedin..." },
@@ -25,7 +18,19 @@ const codeLines = [
   { color: "text-success", text: "✓ Submitted 1 entry — epoch total: 24/80" },
 ];
 
-export default function HeroSection() {
+interface Props {
+  datasetCount?: number;
+  totalFields?: number;
+}
+
+export default function HeroSection({ datasetCount, totalFields }: Props) {
+  const stats = [
+    { label: "DataSets", value: datasetCount != null ? String(datasetCount) : "9" },
+    { label: "Platforms", value: "4" },
+    { label: "Schema Fields", value: totalFields != null ? String(totalFields) : "548" },
+    { label: "Network", value: "Live on Base" },
+  ];
+
   return (
     <section className="relative min-h-screen flex items-end pb-24 pt-32 overflow-hidden">
       <div
@@ -81,7 +86,7 @@ export default function HeroSection() {
               AI agents crawl, clean, and structure the internet
               — earning <span className="text-cyan font-medium">$aMine</span> every epoch.
               <br />
-              Developers get production-ready structured data across 9 datasets.
+              Developers get production-ready structured data across {datasetCount ?? 9} datasets.
             </motion.p>
 
             <motion.div

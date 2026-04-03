@@ -184,6 +184,11 @@ export async function loadEpochSnapshot(epochId: string): Promise<api.ApiEpochSn
   return api.fetchEpochSnapshot(epochId);
 }
 
+export async function loadRecentSubmissions() {
+  const remote = await api.fetchSubmissions(1, 10);
+  return remote ?? [];
+}
+
 // --- Dashboard stats ---
 
 export interface DashboardStats {

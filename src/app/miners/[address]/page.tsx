@@ -19,10 +19,10 @@ export default async function MinerDetailPage({ params }: { params: { address: s
 
   const epochHistory = epochs.slice(0, 10).map((ep, i) => ({
     epoch: ep.id,
-    taskCount: Math.max(0, miner.taskCount - i * 50 + Math.floor(Math.random() * 30)),
-    avgScore: Math.max(55, miner.avgScore - i * 1.5 + Math.random() * 3),
+    taskCount: Math.max(0, miner.taskCount - i * 50 + (i % 3) * 15),
+    avgScore: Math.max(55, miner.avgScore - i * 1.5 + (i % 3) * 1.2),
     qualified: i < 7,
-    reward: Math.max(0, miner.reward - i * 200 + Math.floor(Math.random() * 100)),
+    reward: Math.max(0, miner.reward - i * 200 + (i % 3) * 50),
   }));
 
   const trendData = [...epochHistory].reverse().map((eh) => ({

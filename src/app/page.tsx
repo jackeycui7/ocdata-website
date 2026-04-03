@@ -7,17 +7,35 @@ import DefenseLayers from "@/components/landing/DefenseLayers";
 import FeaturedDatasets from "@/components/landing/FeaturedDatasets";
 import TokenInfo from "@/components/landing/TokenInfo";
 import GetStartedCTA from "@/components/landing/GetStartedCTA";
+import * as api from "@/lib/api";
 
-export default function Home() {
+export const revalidate = 3600;
+
+export default async function Home() {
+  const apiDatasets = await api.fetchDatasets();
+
+  const featuredDatasets = apiDatasets && apiDatasets.length > 0
+    ? apiDatasets.map((d) => ({
+        id: d.dataset_id,
+        name: d.name,
+        domain: d.source_domains[0] || "",
+        fields: Object.keys(d.schema).length,
+        dedupKey: d.dedup_fields?.join(" + ") || "—",
+      }))
+    : undefined;
+
+  const datasetCount = featuredDatasets?.length;
+  const totalFields = featuredDatasets?.reduce((s, d) => s + d.fields, 0);
+
   return (
     <>
       <Navbar />
       <main>
-        <HeroSection />
+        <HeroSection datasetCount={datasetCount} totalFields={totalFields} />
         <HowItWorks />
         <ProtocolOverview />
         <DefenseLayers />
-        <FeaturedDatasets />
+        <FeaturedDatasets datasets={featuredDatasets} />
         <TokenInfo />
         <GetStartedCTA />
       </main>

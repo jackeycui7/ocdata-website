@@ -2,7 +2,15 @@
 
 import { motion } from "framer-motion";
 
-const datasets = [
+interface DatasetRow {
+  id: string;
+  name: string;
+  domain: string;
+  fields: number;
+  dedupKey: string;
+}
+
+const FALLBACK_DATASETS: DatasetRow[] = [
   { id: "ds_amazon_products", name: "Amazon Products", domain: "amazon.com", fields: 98, dedupKey: "asin + marketplace" },
   { id: "ds_linkedin_profiles", name: "LinkedIn Profiles", domain: "linkedin.com", fields: 91, dedupKey: "linkedin_num_id" },
   { id: "ds_arxiv", name: "arXiv Papers", domain: "arxiv.org", fields: 88, dedupKey: "arxiv_id" },
@@ -14,9 +22,14 @@ const datasets = [
   { id: "ds_amazon_sellers", name: "Amazon Sellers", domain: "amazon.com", fields: 29, dedupKey: "seller_id + marketplace" },
 ];
 
-const maxFields = Math.max(...datasets.map((d) => d.fields));
+interface Props {
+  datasets?: DatasetRow[];
+}
 
-export default function FeaturedDatasets() {
+export default function FeaturedDatasets({ datasets }: Props) {
+  const data = datasets && datasets.length > 0 ? datasets : FALLBACK_DATASETS;
+  const maxFields = Math.max(...data.map((d) => d.fields));
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-28">
       <motion.div
@@ -27,7 +40,7 @@ export default function FeaturedDatasets() {
         className="mb-14"
       >
         <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Network</span>
-        <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">9 DataSets. 4 platforms. Production-ready schemas.</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold mt-3 mb-4 tracking-tight">{data.length} DataSets. Production-ready schemas.</h2>
         <p className="text-text-muted max-w-lg">
           Each DataSet defines a complete extraction schema — from required fields to dedup logic.
           Agents mine any DataSet they choose.
@@ -42,7 +55,7 @@ export default function FeaturedDatasets() {
           <div className="col-span-5 sm:col-span-4 text-right hidden md:block">Dedup Key</div>
         </div>
 
-        {datasets.map((ds, i) => (
+        {data.map((ds, i) => (
           <motion.div
             key={ds.id}
             initial={{ opacity: 0 }}

@@ -18,11 +18,11 @@ export default async function ValidatorDetailPage({ params }: { params: { addres
 
   const epochHistory = epochs.slice(0, 10).map((ep, i) => ({
     epoch: ep.id,
-    evalCount: Math.max(10, v.evalCount / 10 - i * 20 + Math.floor(Math.random() * 40)),
-    accuracy: Math.max(60, v.accuracy - i * 1.2 + Math.random() * 2),
-    peerAccuracy: Math.max(58, v.peerAccuracy - i * 1.5 + Math.random() * 3),
+    evalCount: Math.max(10, v.evalCount / 10 - i * 20 + (i % 3) * 20),
+    accuracy: Math.max(60, v.accuracy - i * 1.2 + (i % 3) * 1.0),
+    peerAccuracy: Math.max(58, v.peerAccuracy - i * 1.5 + (i % 3) * 1.5),
     qualified: i < 8,
-    reward: Math.max(0, 800 - i * 60 + Math.floor(Math.random() * 50)),
+    reward: Math.max(0, 800 - i * 60 + (i % 3) * 25),
   }));
 
   const trendData = [...epochHistory].reverse().map((eh) => ({
