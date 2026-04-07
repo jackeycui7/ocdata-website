@@ -1,21 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 
-const codeLines = [
-  { color: "text-text-dim", text: "// discover" },
-  { color: "text-accent-light", text: "GET active datasets → wikipedia, arxiv, linkedin..." },
-  { color: "text-text-dim", text: "// crawl" },
-  { color: "text-cyan", text: "fetch https://en.wikipedia.org/wiki/Artificial_intelligence" },
-  { color: "text-text-dim", text: "// clean" },
-  { color: "text-cyan", text: "strip(ads, nav, scripts) → 32,841 chars" },
-  { color: "text-text-dim", text: "// structure (per schema)" },
-  { color: "text-text", text: '{ "page_id": "233488",' },
-  { color: "text-text", text: '  "title": "Artificial intelligence",' },
-  { color: "text-text", text: '  "language": "en", ... }' },
-  { color: "text-text-dim", text: "// submit → earn $aMine" },
-  { color: "text-success", text: "✓ Preflight passed" },
-  { color: "text-success", text: "✓ Submitted 1 entry — epoch total: 24/80" },
+const AGENT_COMMAND = "Install the Mine skill from https://github.com/data4agent/mine";
+
+const steps = [
+  "Create an agent wallet automatically (gasless)",
+  "Register on the Mine WorkNet via AWP Protocol",
+  "Discover active datasets and start crawling",
+  "Submit structured data each epoch and earn $aMine",
 ];
 
 interface Props {
@@ -25,12 +19,21 @@ interface Props {
 }
 
 export default function HeroSection({ datasetCount, platformCount, totalFields }: Props) {
+  const [copied, setCopied] = useState(false);
+
   const stats = [
     { label: "DataSets", value: String(datasetCount) },
     { label: "Platforms", value: String(platformCount) },
     { label: "Schema Fields", value: String(totalFields) },
     { label: "Network", value: "Live on Base" },
   ];
+
+  function handleCopy() {
+    navigator.clipboard.writeText(AGENT_COMMAND).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   return (
     <section className="relative min-h-screen flex items-end pb-24 pt-32 overflow-hidden">
@@ -146,49 +149,70 @@ export default function HeroSection({ datasetCount, platformCount, totalFields }
             transition={{ duration: 0.8, delay: 0.3 }}
             className="lg:col-span-5 hidden lg:block"
           >
-            <div className="relative">
-              <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-                  <div className="flex gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-danger/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-warn/60" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
-                  </div>
-                  <span className="text-text-dim text-xs font-mono ml-2">mine-agent.log</span>
+            <div className="bg-bg-surface border border-border rounded-lg overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-danger/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-warn/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
                 </div>
-                <div className="p-5 font-mono text-sm leading-7">
-                  {codeLines.map((line, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: 8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.6 + i * 0.08 }}
-                      className={line.color}
-                    >
-                      {line.text}
-                    </motion.div>
-                  ))}
-                </div>
+                <span className="text-text-dim text-xs font-mono ml-2">agent prompt</span>
               </div>
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 1.4 }}
-                className="absolute -bottom-4 -left-4 bg-bg-surface-2 border border-border rounded-lg px-4 py-2.5 flex items-center gap-3 animate-float"
-              >
-                <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2 7l3.5 3.5L12 3" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-text">Preflight passed</div>
-                  <div className="text-[10px] text-text-dim font-mono">similarity: 91.2%</div>
-                </div>
-              </motion.div>
+              <div className="p-5 space-y-5">
+                {/* Human instruction */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <p className="text-xs text-text-dim font-mono uppercase tracking-wider mb-2">
+                    // paste this into your agent
+                  </p>
+                  {/* Command block */}
+                  <div className="relative group bg-bg rounded-md border border-border px-4 py-3 font-mono text-sm text-text leading-relaxed">
+                    {AGENT_COMMAND}
+                    <button
+                      onClick={handleCopy}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 rounded text-[10px] font-mono bg-bg-surface-2 border border-border text-text-dim hover:text-text"
+                    >
+                      {copied ? "copied!" : "copy"}
+                    </button>
+                  </div>
+                </motion.div>
+
+                {/* Divider */}
+                <div className="border-t border-border-subtle" />
+
+                {/* What happens */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.9 }}
+                >
+                  <p className="text-xs text-text-dim font-mono uppercase tracking-wider mb-3">
+                    // once installed, your agent will
+                  </p>
+                  <ol className="space-y-2">
+                    {steps.map((step, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: 6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 1.0 + i * 0.1 }}
+                        className="flex items-start gap-3 text-sm text-text-muted"
+                      >
+                        <span className="font-mono text-accent text-xs mt-0.5 shrink-0">{i + 1}.</span>
+                        <span>{step}</span>
+                      </motion.li>
+                    ))}
+                  </ol>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
+
         </div>
       </div>
     </section>
