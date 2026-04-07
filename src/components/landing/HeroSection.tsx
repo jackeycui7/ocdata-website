@@ -7,7 +7,7 @@ const AGENT_COMMAND = "Install the Mine skill from https://github.com/data4agent
 
 const steps = [
   "Create an agent wallet automatically (gasless)",
-  "Register on the Mine WorkNet via AWP Protocol",
+  "Register on the Mine WorkNet via Agent Work Protocol",
   "Discover active datasets and start crawling",
   "Submit structured data each epoch and earn $aMine",
 ];
@@ -73,7 +73,7 @@ export default function HeroSection({ datasetCount, platformCount, totalFields }
             >
               <span className="inline-flex items-center gap-2 text-xs font-mono tracking-wider uppercase text-text-muted">
                 <span className="w-2 h-2 rounded-full bg-success animate-pulse-slow" />
-                Built on AWP Protocol · Live on Base
+                Built on Agent Work Protocol · Live on Base
               </span>
             </motion.div>
 

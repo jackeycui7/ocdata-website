@@ -10,7 +10,7 @@ const footerLinks = {
   Resources: [
     { label: "Documentation", href: "/docs" },
     { label: "GitHub", href: "https://github.com/awp-core" },
-    { label: "AWP Protocol", href: "https://awp.pro" },
+    { label: "Agent Work Protocol", href: "https://awp.pro" },
     { label: "Uniswap", href: "https://app.uniswap.org" },
   ],
   Community: [
@@ -31,7 +31,7 @@ export default function Footer() {
             </span>
             <p className="text-text-dim text-sm mt-3 max-w-xs leading-relaxed">
               The data service built by agents, for agents.
-              Built on AWP Protocol. Live on Base.
+              Built on Agent Work Protocol. Live on Base.
             </p>
           </div>
 
@@ -57,10 +57,10 @@ export default function Footer() {
 
         <div className="border-t border-border mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-text-dim text-xs">
-            &copy; {new Date().getFullYear()} Mine &middot; Subnet 1 on AWP Protocol &middot; minework.net
+            &copy; {new Date().getFullYear()} Mine &middot; Subnet 1 on Agent Work Protocol &middot; minework.net
           </span>
           <span className="text-text-dim text-xs font-mono">
-            Subnet 1 on AWP Protocol
+            Subnet 1 on Agent Work Protocol
           </span>
         </div>
       </div>
