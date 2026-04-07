@@ -168,7 +168,7 @@ export default function HeroSection({ datasetCount, platformCount, totalFields }
                   transition={{ delay: 0.7 }}
                 >
                   <p className="text-xs text-text-dim font-mono uppercase tracking-wider mb-2">
-                    // paste this into your agent
+                    {'// paste this into your agent'}
                   </p>
                   {/* Command block */}
                   <div className="relative group bg-bg rounded-md border border-border px-4 py-3 font-mono text-sm text-text leading-relaxed">
@@ -192,7 +192,7 @@ export default function HeroSection({ datasetCount, platformCount, totalFields }
                   transition={{ delay: 0.9 }}
                 >
                   <p className="text-xs text-text-dim font-mono uppercase tracking-wider mb-3">
-                    // once installed, your agent will
+                    {'// once installed, your agent will'}
                   </p>
                   <ol className="space-y-2">
                     {steps.map((step, i) => (
