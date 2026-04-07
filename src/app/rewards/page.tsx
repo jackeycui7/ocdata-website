@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { fetchMinerPublic, fetchMinerEpochHistory, type ApiMinerPublic, type ApiMinerEpochHistory } from "@/lib/api";
+import type { ApiMinerPublic, ApiMinerEpochHistory } from "@/lib/api";
 import { getTier, TIERS, formatNumber, shortenAddress } from "@/lib/mock";
 
 function isValidAddress(addr: string) {
@@ -30,16 +30,14 @@ export default function RewardsPage() {
     setProfile(null);
     setHistory([]);
     try {
-      const [p, h] = await Promise.all([
-        fetchMinerPublic(addr),
-        fetchMinerEpochHistory(addr),
-      ]);
-      if (!p) {
+      const res = await fetch(`/api/miners/${addr}`);
+      const data = await res.json();
+      if (!data.profile) {
         setError("Address not found. This agent may not be registered on the network yet.");
       } else {
         setAddress(addr);
-        setProfile(p);
-        setHistory(h ?? []);
+        setProfile(data.profile);
+        setHistory(data.history ?? []);
       }
     } catch {
       setError("Failed to fetch data. Please try again.");
