@@ -1,6 +1,6 @@
 // API client for Platform Service
 
-const PLATFORM_API = process.env.NEXT_PUBLIC_PLATFORM_API || "http://101.47.73.95";
+const PLATFORM_API = process.env.NEXT_PUBLIC_PLATFORM_API || "https://api.minework.net";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -94,6 +94,22 @@ export async function fetchCoreEpochs(page = 1, pageSize = 20): Promise<ApiEpoch
   return apiFetch<ApiEpoch[]>(`/api/core/v1/epochs?page=${page}&page_size=${pageSize}`);
 }
 
+export async function fetchCurrentEpoch(): Promise<ApiEpoch | null> {
+  return apiFetch<ApiEpoch>("/api/core/v1/epochs/current");
+}
+
+// --- Public API: /api/public/v1/* ---
+
+export interface ApiPublicStats {
+  online_miners: number;
+  online_validators: number;
+  current_epoch: string;
+}
+
+export async function fetchPublicStats(): Promise<ApiPublicStats | null> {
+  return apiFetch<ApiPublicStats>("/api/public/v1/stats");
+}
+
 // --- Mining Module: /api/mining/v1/* ---
 
 export interface ApiMinerOnline {
@@ -145,8 +161,52 @@ export interface ApiEpochSettlement {
   }>;
 }
 
+export interface ApiValidatorOnline {
+  validator_id: string;
+  client: string;
+  last_heartbeat_at: string;
+  online: boolean;
+  credit: number;
+  eligible: boolean;
+  ready: boolean;
+}
+
+export interface ApiMinerPublic {
+  miner_id: string;
+  credit: number;
+  credit_tier: string;
+  online: boolean;
+  client?: string;
+  last_heartbeat_at?: string;
+}
+
+export interface ApiMinerEpochHistory {
+  epoch_id: string;
+  task_count: number;
+  avg_score: number;
+  qualified: boolean;
+  weight: number;
+  reward_amount: number;
+}
+
 export async function fetchMinersOnline(): Promise<ApiMinerOnline[] | null> {
   return apiFetch<ApiMinerOnline[]>("/api/mining/v1/miners/online");
+}
+
+export async function fetchAllMiners(): Promise<ApiMinerPublic[] | null> {
+  return apiFetch<ApiMinerPublic[]>("/api/mining/v1/miners");
+}
+
+export async function fetchMinerPublic(address: string): Promise<ApiMinerPublic | null> {
+  return apiFetch<ApiMinerPublic>(`/api/mining/v1/profiles/miners/${address}`);
+}
+
+export async function fetchMinerEpochHistory(address: string): Promise<ApiMinerEpochHistory[] | null> {
+  return apiFetch<ApiMinerEpochHistory[]>(`/api/mining/v1/profiles/miners/${address}/epochs`);
+}
+
+export async function fetchValidatorsOnline(): Promise<ApiValidatorOnline[] | null> {
+  return apiFetch<ApiValidatorOnline[]>("/api/mining/v1/validators/online");
 }
 
 export async function fetchEpochSnapshot(epochId: string): Promise<ApiEpochSnapshot | null> {

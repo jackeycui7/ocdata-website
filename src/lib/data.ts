@@ -77,9 +77,22 @@ export async function loadDataset(id: string): Promise<DatasetInfo | null> {
 }
 
 export async function loadMiners(): Promise<MinerStat[]> {
-  const remote = await api.fetchMinersOnline();
+  const remote = await api.fetchAllMiners();
   if (remote !== null) {
-    const miners: MinerStat[] = remote.map((m) => ({
+    return remote.map((m) => ({
+      address: m.miner_id,
+      credit: m.credit,
+      tier: m.credit_tier,
+      taskCount: 0,
+      avgScore: 0,
+      reward: 0,
+      online: m.online,
+    }));
+  }
+  // fallback to online-only list
+  const online = await api.fetchMinersOnline();
+  if (online !== null) {
+    return online.map((m) => ({
       address: m.miner_id,
       credit: m.credit,
       tier: getTier(m.credit),
@@ -88,35 +101,60 @@ export async function loadMiners(): Promise<MinerStat[]> {
       reward: 0,
       online: m.online,
     }));
-
-    try {
-      const epochs = await api.fetchCoreEpochs(1, 5);
-      const completedEpoch = epochs?.find((e) => e.status === "completed");
-      if (completedEpoch) {
-        const snapshot = await api.fetchEpochSnapshot(completedEpoch.id);
-        if (snapshot) {
-          for (const miner of miners) {
-            const snap = snapshot.miners[miner.address];
-            if (snap) {
-              miner.taskCount = snap.task_count;
-              miner.avgScore = snap.avg_score;
-            }
-          }
-        }
-      }
-    } catch {
-      // snapshot enrichment is best-effort
-    }
-
-    return miners;
   }
   return [];
 }
 
+export interface MinerEpochHistory {
+  epochId: string;
+  taskCount: number;
+  avgScore: number;
+  qualified: boolean;
+  weight: number;
+  rewardAmount: number;
+}
+
+export async function loadMinerProfile(address: string): Promise<MinerStat | null> {
+  const remote = await api.fetchMinerPublic(address);
+  if (!remote) return null;
+  return {
+    address: remote.miner_id,
+    credit: remote.credit,
+    tier: remote.credit_tier,
+    taskCount: 0,
+    avgScore: 0,
+    reward: 0,
+    online: remote.online,
+  };
+}
+
+export async function loadMinerEpochHistory(address: string): Promise<MinerEpochHistory[]> {
+  const remote = await api.fetchMinerEpochHistory(address);
+  if (!remote) return [];
+  return remote.map((e) => ({
+    epochId: e.epoch_id,
+    taskCount: e.task_count,
+    avgScore: e.avg_score,
+    qualified: e.qualified,
+    weight: e.weight,
+    rewardAmount: e.reward_amount,
+  }));
+}
+
 export async function loadEpochs(): Promise<EpochInfo[]> {
-  const remote = await api.fetchCoreEpochs(1, 50);
-  if (remote && remote.length > 0) {
-    return remote
+  const [current, remote] = await Promise.all([
+    api.fetchCurrentEpoch(),
+    api.fetchCoreEpochs(1, 50),
+  ]);
+
+  const epochs = remote ?? [];
+  // Merge current epoch if not already in the list
+  if (current && !epochs.some((e) => e.epoch_id === current.epoch_id)) {
+    epochs.unshift(current);
+  }
+
+  if (epochs.length > 0) {
+    return epochs
       .filter((e) => e.epoch_id !== "2099-12-31")
       .map((e) => ({
         id: e.id,
@@ -197,6 +235,30 @@ export async function loadValidatorsFromEpoch(): Promise<ValidatorsEpochData | n
   };
 }
 
+export interface ValidatorOnlineInfo {
+  address: string;
+  client: string;
+  lastHeartbeatAt: string;
+  online: boolean;
+  credit: number;
+  eligible: boolean;
+  ready: boolean;
+}
+
+export async function loadValidatorsOnline(): Promise<ValidatorOnlineInfo[]> {
+  const remote = await api.fetchValidatorsOnline();
+  if (!remote) return [];
+  return remote.map((v) => ({
+    address: v.validator_id,
+    client: v.client,
+    lastHeartbeatAt: v.last_heartbeat_at,
+    online: v.online,
+    credit: v.credit,
+    eligible: v.eligible,
+    ready: v.ready,
+  }));
+}
+
 export async function loadRecentSubmissions() {
   const remote = await api.fetchSubmissions(1, 10);
   return remote ?? [];
@@ -214,22 +276,24 @@ export interface DashboardStats {
 }
 
 export async function loadDashboardStats(): Promise<DashboardStats> {
-  const [miners, datasets, epochs] = await Promise.all([
+  const [publicStats, currentEpoch, miners, datasets, epochs] = await Promise.all([
+    api.fetchPublicStats(),
+    api.fetchCurrentEpoch(),
     api.fetchMinersOnline(),
     api.fetchDatasets(),
     api.fetchCoreEpochs(1, 5),
   ]);
 
-  const openEpoch = epochs?.find((e) => e.status === "open");
-  const currentEpoch = openEpoch?.epoch_id || epochs?.[0]?.epoch_id || "";
+  const openEpoch = currentEpoch ?? epochs?.find((e) => e.status === "open");
+  const currentEpochId = publicStats?.current_epoch || openEpoch?.epoch_id || epochs?.[0]?.epoch_id || "";
   const currentEpochSummary = openEpoch?.summary;
 
   return {
-    currentEpoch,
-    minersOnline: miners?.filter((m) => m.online).length ?? 0,
+    currentEpoch: currentEpochId,
+    minersOnline: publicStats?.online_miners ?? miners?.filter((m) => m.online).length ?? 0,
     minersTotal: miners?.length ?? 0,
-    validatorsOnline: 0,
-    validatorsTotal: 0,
+    validatorsOnline: publicStats?.online_validators ?? 0,
+    validatorsTotal: publicStats?.online_validators ?? 0,
     totalSubmissions: currentEpochSummary?.total ?? 0,
     totalEvaluations: 0,
     datasetCount: datasets?.length ?? 0,
