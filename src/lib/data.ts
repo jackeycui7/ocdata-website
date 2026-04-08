@@ -239,6 +239,32 @@ export async function loadAddressProfile(address: string): Promise<AddressProfil
   };
 }
 
+export interface ValidatorEpochHistory {
+  epochId: string;
+  evalCount: number;
+  goldenCount: number;
+  peerCount: number;
+  accuracy: number;
+  peerReviewAccuracy: number;
+  qualified: boolean;
+  rewardAmount: number;
+}
+
+export async function loadValidatorEpochHistory(address: string): Promise<ValidatorEpochHistory[]> {
+  const remote = await api.fetchValidatorEpochHistory(address);
+  if (!remote) return [];
+  return remote.map((e) => ({
+    epochId: e.epoch_id,
+    evalCount: e.eval_count,
+    goldenCount: e.golden_count,
+    peerCount: e.peer_count,
+    accuracy: e.accuracy,
+    peerReviewAccuracy: e.peer_review_accuracy,
+    qualified: e.qualified,
+    rewardAmount: e.reward_amount,
+  }));
+}
+
 export async function loadEpochs(): Promise<EpochInfo[]> {
   const [current, remote] = await Promise.all([
     api.fetchCurrentEpoch(),

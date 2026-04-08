@@ -205,6 +205,21 @@ export async function fetchMinerEpochHistory(address: string): Promise<ApiMinerE
   return apiFetch<ApiMinerEpochHistory[]>(`/api/mining/v1/profiles/miners/${address}/epochs`);
 }
 
+export interface ApiValidatorEpochHistory {
+  epoch_id: string;
+  eval_count: number;
+  golden_count: number;
+  peer_count: number;
+  accuracy: number;
+  peer_review_accuracy: number;
+  qualified: boolean;
+  reward_amount: number;
+}
+
+export async function fetchValidatorEpochHistory(address: string): Promise<ApiValidatorEpochHistory[] | null> {
+  return apiFetch<ApiValidatorEpochHistory[]>(`/api/mining/v1/profiles/validators/${address}/epochs`);
+}
+
 // --- Unified Address Profile (includes current epoch real-time stats) ---
 
 export interface ApiCurrentEpochMinerStats {

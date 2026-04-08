@@ -74,7 +74,7 @@ export default async function ValidatorsPage() {
                           <tr key={v.address} className="hover:bg-bg-surface transition-colors">
                             <td className="px-6 py-3 font-mono text-text-dim tabular-nums">{i + 1}</td>
                             <td className="px-4 py-3 font-mono text-sm">
-                              <span>{shortenAddress(v.address)}</span>
+                              <a href={`/validators/${v.address}`} className="text-accent hover:text-accent-light transition-colors">{shortenAddress(v.address)}</a>
                               {isOnline && <span className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-success align-middle" />}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{v.evalCount.toLocaleString()}</td>
@@ -136,7 +136,7 @@ export default async function ValidatorsPage() {
                           <tr key={v.address} className="hover:bg-bg-surface transition-colors">
                             <td className="px-6 py-3 font-mono text-text-dim tabular-nums">{i + 1}</td>
                             <td className="px-4 py-3 font-mono text-sm">
-                              <span>{shortenAddress(v.address)}</span>
+                              <a href={`/validators/${v.address}`} className="text-accent hover:text-accent-light transition-colors">{shortenAddress(v.address)}</a>
                               <span className="ml-2 inline-block w-1.5 h-1.5 rounded-full bg-success align-middle" />
                             </td>
                             <td className="px-4 py-3 font-mono text-xs text-text-dim">{v.client}</td>
