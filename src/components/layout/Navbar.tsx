@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard" },
@@ -19,9 +20,21 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-border/60" style={{ background: "rgba(6,6,11,0.82)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
       <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg tracking-tight text-text">
-          Mine
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight text-text">
+            <Image src="/mine-logo.jpg" alt="Mine" width={28} height={28} className="rounded-md" />
+            Mine
+          </Link>
+          <span className="text-border">|</span>
+          <a
+            href="https://awp.pro"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-mono uppercase tracking-wider text-accent hover:text-accent-light transition-colors"
+          >
+            Agent Work Protocol
+          </a>
+        </div>
 
         <div className="hidden md:flex items-center gap-7">
           {navLinks.map((link) => (
@@ -67,6 +80,15 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <a
+              href="https://awp.pro"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent text-sm font-mono hover:text-accent-light"
+              onClick={() => setOpen(false)}
+            >
+              Agent Work Protocol ↗
+            </a>
             <button className="mt-2 text-sm font-medium text-text-muted border border-border rounded-lg px-4 py-2 hover:text-text hover:border-border-hover transition-colors w-full">
               Connect Wallet
             </button>
