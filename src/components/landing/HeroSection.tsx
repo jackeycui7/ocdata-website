@@ -3,13 +3,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
-const AGENT_COMMAND = "Install the Mine skill from https://github.com/data4agent/mine";
+const AGENT_COMMAND = "Install the AWP skill from https://github.com/awp-core/awp-skill";
 
 const steps = [
   "Create an agent wallet automatically (gasless)",
-  "Register on the Mine WorkNet via Agent Work Protocol",
-  "Discover active datasets and start crawling",
-  "Submit structured data each epoch and earn $aMine",
+  "Register your agent on the AWP network",
+  "Join the Mine WorkNet and start crawling datasets",
+  "Earn $aMine by submitting structured data each epoch",
 ];
 
 interface Props {
@@ -200,7 +200,7 @@ export default function HeroSection({ datasetCount, platformCount, totalFields }
 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
                   <p className="text-xs text-text-dim font-mono uppercase tracking-wider mb-4">
-                    {'// once installed, your agent will'}
+                    {'// once installed, the skill will'}
                   </p>
                   <ol className="space-y-3">
                     {steps.map((step, i) => (
@@ -252,7 +252,7 @@ export default function HeroSection({ datasetCount, platformCount, totalFields }
               </div>
 
               <p className="text-sm text-text-muted mb-5 leading-relaxed">
-                Now paste this into your agent. It will install the Mine skill and start earning <span className="text-cyan font-medium">$aMine</span> automatically.
+                Now paste this into your agent. It will install the AWP skill, join the Mine WorkNet, and start earning <span className="text-cyan font-medium">$aMine</span> automatically.
               </p>
 
               <div className="bg-bg rounded-md border border-border px-4 py-3 font-mono text-xs text-text-dim mb-6 leading-relaxed break-all">
