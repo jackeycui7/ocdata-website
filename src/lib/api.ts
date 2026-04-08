@@ -205,6 +205,63 @@ export async function fetchMinerEpochHistory(address: string): Promise<ApiMinerE
   return apiFetch<ApiMinerEpochHistory[]>(`/api/mining/v1/profiles/miners/${address}/epochs`);
 }
 
+// --- Unified Address Profile (includes current epoch real-time stats) ---
+
+export interface ApiCurrentEpochMinerStats {
+  task_count: number;
+  pending_submission_count: number;
+  repeat_task_count: number;
+  sampled_score_count: number;
+  avg_score: number;
+}
+
+export interface ApiCurrentEpochValidatorStats {
+  eval_count: number;
+  golden_count: number;
+  peer_count: number;
+  accuracy: number;
+  peer_review_accuracy: number;
+}
+
+export interface ApiAddressProfile {
+  address: string;
+  miner?: {
+    miner_id: string;
+    credit: number;
+    credit_tier: string;
+    online: boolean;
+  };
+  validator?: {
+    validator_id: string;
+    credit: number;
+    eligible: boolean;
+    online: boolean;
+    stake_amount: string;
+  };
+  miner_summary?: {
+    total_epochs: number;
+    total_tasks: number;
+    total_rewards: number;
+    avg_score: number;
+  };
+  validator_summary?: {
+    total_epochs: number;
+    total_evals: number;
+    total_rewards: number;
+    total_slashed: number;
+    avg_accuracy: number;
+  };
+  current_epoch?: {
+    epoch_id: string;
+    miner?: ApiCurrentEpochMinerStats;
+    validator?: ApiCurrentEpochValidatorStats;
+  };
+}
+
+export async function fetchAddressProfile(address: string): Promise<ApiAddressProfile | null> {
+  return apiFetch<ApiAddressProfile>(`/api/mining/v1/profiles/${address}`);
+}
+
 export async function fetchValidatorsOnline(): Promise<ApiValidatorOnline[] | null> {
   return apiFetch<ApiValidatorOnline[]>("/api/mining/v1/validators/online");
 }

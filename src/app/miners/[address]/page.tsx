@@ -1,6 +1,5 @@
 import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
-import { loadMiners, loadEpochs } from "@/lib/data";
-import * as api from "@/lib/api";
+import { loadAddressProfile, loadMinerEpochHistory } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import MinerTrendChart from "@/components/charts/MinerTrendChart";
@@ -8,43 +7,30 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 30;
 
-export default async function MinerDetailPage({ params }: { params: { address: string } }) {
-  const miners = await loadMiners();
-  const miner = miners.find((m) => m.address === decodeURIComponent(params.address));
-  if (!miner) return notFound();
+function estimateEarnings(avgScore: number, taskCount: number): string {
+  if (taskCount < 80 || avgScore < 60) return "—";
+  const weight = Math.pow(avgScore, 2) * taskCount;
+  return formatNumber(Math.round(weight / 100));
+}
 
+export default async function MinerDetailPage({ params }: { params: { address: string } }) {
+  const address = decodeURIComponent(params.address);
+  const [profile, epochHistory] = await Promise.all([
+    loadAddressProfile(address),
+    loadMinerEpochHistory(address),
+  ]);
+
+  if (!profile?.miner) return notFound();
+
+  const { miner, minerSummary, currentEpoch } = profile;
   const tier = getTier(miner.credit);
   const t = TIERS[tier];
-  const qualified = miner.taskCount >= 80 && miner.avgScore >= 60;
-  const epochs = await loadEpochs();
 
-  const completedEpochs = epochs.filter((e) => e.status === "completed").slice(0, 10);
-
-  const epochHistory: { epoch: string; taskCount: number; avgScore: number; qualified: boolean; reward: number }[] = [];
-
-  for (const ep of completedEpochs) {
-    try {
-      const snapshot = await api.fetchEpochSnapshot(ep.id);
-      const settlement = await api.fetchEpochSettlement(ep.id);
-      const snap = snapshot?.miners[miner.address];
-      const settle = settlement?.miners.find((m) => m.miner_id === miner.address);
-
-      if (snap || settle) {
-        epochHistory.push({
-          epoch: ep.startTime.split("T")[0],
-          taskCount: snap?.task_count ?? settle?.task_count ?? 0,
-          avgScore: snap?.avg_score ?? settle?.avg_score ?? 0,
-          qualified: settle?.qualified ?? false,
-          reward: settle?.reward_amount ?? 0,
-        });
-      }
-    } catch {
-      // skip epoch if API fails
-    }
-  }
+  const curMiner = currentEpoch?.miner;
+  const isQualifiedNow = curMiner ? curMiner.taskCount >= 80 && curMiner.avgScore >= 60 : false;
 
   const trendData = [...epochHistory].reverse().map((eh) => ({
-    epoch: eh.epoch,
+    epoch: eh.epochId,
     submissions: eh.taskCount,
     avgScore: Number(eh.avgScore.toFixed(1)),
   }));
@@ -54,15 +40,15 @@ export default async function MinerDetailPage({ params }: { params: { address: s
       <Navbar />
       <main className="pt-14">
         <div className="max-w-7xl mx-auto px-6 py-10">
-          <a href="/miners" className="text-xs font-mono text-text-dim hover:text-text-muted transition-colors">← Miners</a>
+          <a href="/miners" className="text-xs font-mono text-text-dim hover:text-text-muted transition-colors">&larr; Miners</a>
 
           <div className="mt-4 mb-10">
             <div className="flex items-center gap-3 mb-3">
-              <h1 className="font-mono text-2xl font-bold tracking-tight">{shortenAddress(miner.address)}</h1>
+              <h1 className="font-mono text-2xl font-bold tracking-tight">{shortenAddress(address)}</h1>
               <span className={`inline-block w-2.5 h-2.5 rounded-full ${miner.online ? "bg-success" : "bg-text-dim"}`} />
               <span className={`text-xs font-mono ${t.color}`}>{t.label}</span>
             </div>
-            <div className="font-mono text-xs text-text-dim break-all">{miner.address}</div>
+            <div className="font-mono text-xs text-text-dim break-all">{address}</div>
           </div>
 
           <div className="mb-10">
@@ -75,19 +61,56 @@ export default async function MinerDetailPage({ params }: { params: { address: s
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
-            {[
-              { label: "Submissions", value: miner.taskCount.toLocaleString() },
-              { label: "Avg Score", value: miner.avgScore.toFixed(1) },
-              { label: "Qualified", value: qualified ? "Yes" : "No" },
-              { label: "Epoch Reward", value: `${formatNumber(miner.reward)} $aMine` },
-            ].map((s) => (
-              <div key={s.label} className="bg-bg-surface p-5">
-                <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
-                <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
+          {/* Lifetime summary */}
+          {minerSummary && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
+              {[
+                { label: "Total Epochs", value: String(minerSummary.totalEpochs) },
+                { label: "Total Tasks", value: minerSummary.totalTasks.toLocaleString() },
+                { label: "Avg Score", value: minerSummary.avgScore.toFixed(1) },
+                { label: "Total Earned", value: `${formatNumber(minerSummary.totalRewards)} $MINE` },
+              ].map((s) => (
+                <div key={s.label} className="bg-bg-surface p-5">
+                  <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
+                  <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Current epoch real-time stats */}
+          {curMiner && currentEpoch && (
+            <div className="border border-accent/30 bg-accent/5 rounded-lg overflow-hidden mb-10">
+              <div className="px-6 py-4 border-b border-accent/20 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  <h2 className="text-sm font-semibold">Current Epoch</h2>
+                </div>
+                <span className="text-xs font-mono text-text-dim">{currentEpoch.epochId}</span>
               </div>
-            ))}
-          </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-accent/10">
+                {[
+                  { label: "Tasks", value: String(curMiner.taskCount) },
+                  { label: "Avg Score", value: curMiner.avgScore.toFixed(1) },
+                  { label: "Sampled", value: String(curMiner.sampledScoreCount) },
+                  { label: "Qualified", value: isQualifiedNow ? "Yes" : `${curMiner.taskCount}/80` },
+                  { label: "Est. Earnings", value: isQualifiedNow ? `~${estimateEarnings(curMiner.avgScore, curMiner.taskCount)} $MINE` : "—" },
+                ].map((s) => (
+                  <div key={s.label} className="bg-bg-surface/80 p-5">
+                    <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
+                    <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
+                  </div>
+                ))}
+              </div>
+              {!isQualifiedNow && curMiner.taskCount > 0 && (
+                <div className="px-6 py-3 text-xs font-mono text-text-muted border-t border-accent/10">
+                  Need {Math.max(0, 80 - curMiner.taskCount)} more tasks
+                  {curMiner.avgScore < 60 && curMiner.avgScore > 0 ? ` and avg score >= 60 (currently ${curMiner.avgScore.toFixed(1)})` : ""}
+                  {" "}to qualify
+                </div>
+              )}
+            </div>
+          )}
 
           {trendData.length > 0 && (
             <div className="border border-border rounded-lg overflow-hidden mb-8">
@@ -118,8 +141,8 @@ export default async function MinerDetailPage({ params }: { params: { address: s
                   </thead>
                   <tbody className="divide-y divide-border-subtle">
                     {epochHistory.map((eh) => (
-                      <tr key={eh.epoch} className="hover:bg-bg-surface transition-colors">
-                        <td className="px-6 py-3 font-mono tabular-nums">{eh.epoch}</td>
+                      <tr key={eh.epochId} className="hover:bg-bg-surface transition-colors">
+                        <td className="px-6 py-3 font-mono tabular-nums">{eh.epochId}</td>
                         <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{eh.taskCount}</td>
                         <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{eh.avgScore.toFixed(1)}</td>
                         <td className="px-4 py-3 text-center">
@@ -127,7 +150,7 @@ export default async function MinerDetailPage({ params }: { params: { address: s
                             {eh.qualified ? "yes" : "no"}
                           </span>
                         </td>
-                        <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">{eh.qualified ? formatNumber(eh.reward) : "—"}</td>
+                        <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">{eh.qualified ? `${formatNumber(eh.rewardAmount)} $MINE` : "—"}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -3,11 +3,17 @@
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import type { ApiMinerPublic, ApiMinerEpochHistory } from "@/lib/api";
+import type { ApiAddressProfile, ApiMinerEpochHistory } from "@/lib/api";
 import { getTier, TIERS, formatNumber, shortenAddress } from "@/lib/mock";
 
 function isValidAddress(addr: string) {
   return /^0x[0-9a-fA-F]{40}$/.test(addr.trim());
+}
+
+function estimateEarnings(avgScore: number, taskCount: number): string {
+  if (taskCount < 80 || avgScore < 60) return "—";
+  const weight = Math.pow(avgScore, 2) * taskCount;
+  return formatNumber(Math.round(weight / 100));
 }
 
 export default function RewardsPage() {
@@ -15,7 +21,7 @@ export default function RewardsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [address, setAddress] = useState("");
-  const [profile, setProfile] = useState<ApiMinerPublic | null>(null);
+  const [profile, setProfile] = useState<ApiAddressProfile | null>(null);
   const [history, setHistory] = useState<ApiMinerEpochHistory[]>([]);
 
   async function handleSearch(e: React.FormEvent) {
@@ -46,9 +52,14 @@ export default function RewardsPage() {
     }
   }
 
-  const totalReward = history.reduce((s, e) => s + e.reward_amount, 0);
+  const minerCredit = profile?.miner?.credit ?? 0;
+  const totalReward = profile?.miner_summary?.total_rewards ?? history.reduce((s, e) => s + e.reward_amount, 0);
   const qualifiedEpochs = history.filter((e) => e.qualified).length;
-  const tier = profile ? getTier(profile.credit) : "novice";
+  const tier = getTier(minerCredit);
+  const isOnline = profile?.miner?.online ?? false;
+
+  const curMiner = profile?.current_epoch?.miner;
+  const isQualifiedNow = curMiner ? curMiner.task_count >= 80 && curMiner.avg_score >= 60 : false;
 
   return (
     <>
@@ -96,19 +107,19 @@ export default function RewardsPage() {
                     <span className={`text-xs font-mono ${TIERS[tier]?.color ?? "text-text-dim"}`}>
                       {TIERS[tier]?.label ?? tier}
                     </span>
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-mono ${profile.online ? "text-success" : "text-text-dim"}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${profile.online ? "bg-success animate-pulse" : "bg-text-dim"}`} />
-                      {profile.online ? "Online" : "Offline"}
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-mono ${isOnline ? "text-success" : "text-text-dim"}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-success animate-pulse" : "bg-text-dim"}`} />
+                      {isOnline ? "Online" : "Offline"}
                     </span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border">
                   {[
-                    { label: "Credit Score", value: String(profile.credit) },
-                    { label: "Total Earned", value: totalReward > 0 ? formatNumber(totalReward) + " $aMine" : "—" },
+                    { label: "Credit Score", value: String(minerCredit) },
+                    { label: "Total Earned", value: totalReward > 0 ? formatNumber(totalReward) + " $MINE" : "—" },
                     { label: "Epochs Qualified", value: history.length > 0 ? `${qualifiedEpochs} / ${history.length}` : "—" },
-                    { label: "Client", value: profile.client || "—" },
+                    { label: "Avg Score", value: profile.miner_summary ? profile.miner_summary.avg_score.toFixed(1) : "—" },
                   ].map((s) => (
                     <div key={s.label} className="bg-bg-surface p-5">
                       <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
@@ -117,6 +128,40 @@ export default function RewardsPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Current epoch real-time stats */}
+              {curMiner && profile.current_epoch && (
+                <div className="border border-accent/30 bg-accent/5 rounded-lg overflow-hidden mb-6">
+                  <div className="px-6 py-4 border-b border-accent/20 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                      <h2 className="text-sm font-semibold">Current Epoch</h2>
+                    </div>
+                    <span className="text-xs font-mono text-text-dim">{profile.current_epoch.epoch_id}</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-accent/10">
+                    {[
+                      { label: "Tasks", value: String(curMiner.task_count) },
+                      { label: "Avg Score", value: curMiner.avg_score.toFixed(1) },
+                      { label: "Sampled", value: String(curMiner.sampled_score_count) },
+                      { label: "Qualified", value: isQualifiedNow ? "Yes" : `${curMiner.task_count}/80` },
+                      { label: "Est. Earnings", value: isQualifiedNow ? `~${estimateEarnings(curMiner.avg_score, curMiner.task_count)} $MINE` : "—" },
+                    ].map((s) => (
+                      <div key={s.label} className="bg-bg-surface/80 p-5">
+                        <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
+                        <div className="font-mono text-lg font-semibold tabular-nums">{s.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {!isQualifiedNow && curMiner.task_count > 0 && (
+                    <div className="px-6 py-3 text-xs font-mono text-text-muted border-t border-accent/10">
+                      Need {Math.max(0, 80 - curMiner.task_count)} more tasks
+                      {curMiner.avg_score < 60 && curMiner.avg_score > 0 ? ` and avg score >= 60 (currently ${curMiner.avg_score.toFixed(1)})` : ""}
+                      {" "}to qualify
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Epoch history */}
               <div className="border border-border rounded-lg overflow-hidden">
@@ -151,7 +196,7 @@ export default function RewardsPage() {
                               </span>
                             </td>
                             <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">
-                              {ep.reward_amount > 0 ? formatNumber(ep.reward_amount) + " $aMine" : "—"}
+                              {ep.reward_amount > 0 ? formatNumber(ep.reward_amount) + " $MINE" : "—"}
                             </td>
                           </tr>
                         ))}

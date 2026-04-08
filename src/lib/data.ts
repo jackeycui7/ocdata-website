@@ -141,6 +141,104 @@ export async function loadMinerEpochHistory(address: string): Promise<MinerEpoch
   }));
 }
 
+export interface AddressProfile {
+  address: string;
+  miner?: {
+    minerId: string;
+    credit: number;
+    creditTier: string;
+    online: boolean;
+  };
+  validator?: {
+    validatorId: string;
+    credit: number;
+    eligible: boolean;
+    online: boolean;
+    stakeAmount: string;
+  };
+  minerSummary?: {
+    totalEpochs: number;
+    totalTasks: number;
+    totalRewards: number;
+    avgScore: number;
+  };
+  validatorSummary?: {
+    totalEpochs: number;
+    totalEvals: number;
+    totalRewards: number;
+    totalSlashed: number;
+    avgAccuracy: number;
+  };
+  currentEpoch?: {
+    epochId: string;
+    miner?: {
+      taskCount: number;
+      pendingSubmissionCount: number;
+      repeatTaskCount: number;
+      sampledScoreCount: number;
+      avgScore: number;
+    };
+    validator?: {
+      evalCount: number;
+      goldenCount: number;
+      peerCount: number;
+      accuracy: number;
+      peerReviewAccuracy: number;
+    };
+  };
+}
+
+export async function loadAddressProfile(address: string): Promise<AddressProfile | null> {
+  const remote = await api.fetchAddressProfile(address);
+  if (!remote) return null;
+  return {
+    address: remote.address,
+    miner: remote.miner ? {
+      minerId: remote.miner.miner_id,
+      credit: remote.miner.credit,
+      creditTier: remote.miner.credit_tier,
+      online: remote.miner.online,
+    } : undefined,
+    validator: remote.validator ? {
+      validatorId: remote.validator.validator_id,
+      credit: remote.validator.credit,
+      eligible: remote.validator.eligible,
+      online: remote.validator.online,
+      stakeAmount: remote.validator.stake_amount,
+    } : undefined,
+    minerSummary: remote.miner_summary ? {
+      totalEpochs: remote.miner_summary.total_epochs,
+      totalTasks: remote.miner_summary.total_tasks,
+      totalRewards: remote.miner_summary.total_rewards,
+      avgScore: remote.miner_summary.avg_score,
+    } : undefined,
+    validatorSummary: remote.validator_summary ? {
+      totalEpochs: remote.validator_summary.total_epochs,
+      totalEvals: remote.validator_summary.total_evals,
+      totalRewards: remote.validator_summary.total_rewards,
+      totalSlashed: remote.validator_summary.total_slashed,
+      avgAccuracy: remote.validator_summary.avg_accuracy,
+    } : undefined,
+    currentEpoch: remote.current_epoch ? {
+      epochId: remote.current_epoch.epoch_id,
+      miner: remote.current_epoch.miner ? {
+        taskCount: remote.current_epoch.miner.task_count,
+        pendingSubmissionCount: remote.current_epoch.miner.pending_submission_count,
+        repeatTaskCount: remote.current_epoch.miner.repeat_task_count,
+        sampledScoreCount: remote.current_epoch.miner.sampled_score_count,
+        avgScore: remote.current_epoch.miner.avg_score,
+      } : undefined,
+      validator: remote.current_epoch.validator ? {
+        evalCount: remote.current_epoch.validator.eval_count,
+        goldenCount: remote.current_epoch.validator.golden_count,
+        peerCount: remote.current_epoch.validator.peer_count,
+        accuracy: remote.current_epoch.validator.accuracy,
+        peerReviewAccuracy: remote.current_epoch.validator.peer_review_accuracy,
+      } : undefined,
+    } : undefined,
+  };
+}
+
 export async function loadEpochs(): Promise<EpochInfo[]> {
   const [current, remote] = await Promise.all([
     api.fetchCurrentEpoch(),
