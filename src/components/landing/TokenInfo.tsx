@@ -26,7 +26,7 @@ export default function TokenInfo() {
               <span className="text-accent">$a</span>Mine
             </h2>
             <p className="text-text-muted text-sm leading-relaxed mb-6">
-              ERC-20 on Base. Minted each epoch and distributed to miners, validators, and the subnet owner.
+              ERC-20 on Base. Minted each epoch and distributed to miners, validators, and the WorkNet owner.
               Backed by real work — every token represents verified, structured data.
             </p>
             <a

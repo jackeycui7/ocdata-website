@@ -18,7 +18,7 @@ const roles = [
     cta: { label: "Learn more →", href: "/docs" },
   },
   {
-    title: "Subnet Owner",
+    title: "WorkNet Owner",
     share: "18",
     color: "#f59e0b",
     desc: "Operate the network, maintain Golden Task library, curate DataSets.",
@@ -85,7 +85,7 @@ export default function ProtocolOverview() {
             )}
             {!role.cta && (
               <div className="pt-4 border-t border-border">
-                <span className="text-xs font-mono text-text-dim">Subnet operator</span>
+                <span className="text-xs font-mono text-text-dim">WorkNet operator</span>
               </div>
             )}
           </motion.div>
