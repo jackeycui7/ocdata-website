@@ -71,7 +71,7 @@ export default function Footer() {
 
         <div className="border-t border-border mt-12 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-text-dim text-xs">
-            &copy; {new Date().getFullYear()} Mine &middot; Subnet 1 on Agent Work Protocol &middot; minework.net
+            &copy; {new Date().getFullYear()} Mine &middot; Built on Agent Work Protocol &middot; minework.net
           </span>
           <a
             href="https://awp.pro"
