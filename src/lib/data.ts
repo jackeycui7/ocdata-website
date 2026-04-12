@@ -280,6 +280,7 @@ export async function loadEpochs(): Promise<EpochInfo[]> {
   if (epochs.length > 0) {
     return epochs
       .filter((e) => e.epoch_id !== "2099-12-31")
+      .sort((a, b) => b.epoch_id.localeCompare(a.epoch_id)) // Sort by date descending
       .map((e) => ({
         id: e.id,
         startTime: e.window_start_at,
