@@ -7,10 +7,15 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 30;
 
+// Eligibility: task_count > 10 AND avg_score > 60
+const MIN_TASKS = 10;
+const MIN_AVG_SCORE = 60;
+
 function estimateEarnings(avgScore: number, taskCount: number): string {
-  if (taskCount < 80 || avgScore < 60) return "—";
-  const weight = Math.pow(avgScore, 2) * taskCount;
-  return formatNumber(Math.round(weight / 100));
+  if (taskCount <= MIN_TASKS || avgScore <= MIN_AVG_SCORE) return "—";
+  // Simplified estimate without dataset weights
+  const weight = taskCount * (avgScore / 100);
+  return formatNumber(Math.round(weight * 100));
 }
 
 export default async function MinerDetailPage({ params }: { params: { address: string } }) {
@@ -27,7 +32,7 @@ export default async function MinerDetailPage({ params }: { params: { address: s
   const t = TIERS[tier];
 
   const curMiner = currentEpoch?.miner;
-  const isQualifiedNow = curMiner ? curMiner.taskCount >= 80 && curMiner.avgScore >= 60 : false;
+  const isQualifiedNow = curMiner ? curMiner.taskCount > MIN_TASKS && curMiner.avgScore > MIN_AVG_SCORE : false;
 
   const trendData = [...epochHistory].reverse().map((eh) => ({
     epoch: eh.epochId,
@@ -93,7 +98,7 @@ export default async function MinerDetailPage({ params }: { params: { address: s
                   { label: "Tasks", value: String(curMiner.taskCount) },
                   { label: "Avg Score", value: curMiner.avgScore.toFixed(1) },
                   { label: "Sampled", value: String(curMiner.sampledScoreCount) },
-                  { label: "Qualified", value: isQualifiedNow ? "Yes" : `${curMiner.taskCount}/80` },
+                  { label: "Qualified", value: isQualifiedNow ? "Yes" : `${curMiner.taskCount}/${MIN_TASKS + 1}` },
                   { label: "Est. Earnings", value: isQualifiedNow ? `~${estimateEarnings(curMiner.avgScore, curMiner.taskCount)} $MINE` : "—" },
                 ].map((s) => (
                   <div key={s.label} className="bg-bg-surface/80 p-5">
@@ -104,8 +109,8 @@ export default async function MinerDetailPage({ params }: { params: { address: s
               </div>
               {!isQualifiedNow && curMiner.taskCount > 0 && (
                 <div className="px-6 py-3 text-xs font-mono text-text-muted border-t border-accent/10">
-                  Need {Math.max(0, 80 - curMiner.taskCount)} more tasks
-                  {curMiner.avgScore < 60 && curMiner.avgScore > 0 ? ` and avg score >= 60 (currently ${curMiner.avgScore.toFixed(1)})` : ""}
+                  Need {Math.max(0, MIN_TASKS + 1 - curMiner.taskCount)} more tasks
+                  {curMiner.avgScore <= MIN_AVG_SCORE && curMiner.avgScore > 0 ? ` and avg score > ${MIN_AVG_SCORE} (currently ${curMiner.avgScore.toFixed(1)})` : ""}
                   {" "}to qualify
                 </div>
               )}

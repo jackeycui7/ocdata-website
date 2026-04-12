@@ -10,10 +10,34 @@ function isValidAddress(addr: string) {
   return /^0x[0-9a-fA-F]{40}$/.test(addr.trim());
 }
 
+// aMINE Emission Constants (Year 1)
+const DAILY_EMISSION = 13_698_630; // Total daily aMINE
+const MINER_SHARE = 0.7; // 70% to miners
+const VALIDATOR_SHARE = 0.3; // 30% to validators
+const DAILY_MINER_EMISSION = Math.round(DAILY_EMISSION * MINER_SHARE); // ~9,589,041
+const DAILY_VALIDATOR_EMISSION = Math.round(DAILY_EMISSION * VALIDATOR_SHARE); // ~4,109,589
+
+// Dataset weights for reward calculation
+const DATASET_WEIGHTS: Record<string, { weight: number; label: string }> = {
+  "arXiv": { weight: 1, label: "arXiv" },
+  "Wikipedia": { weight: 1, label: "Wikipedia" },
+  "LinkedIn Posts": { weight: 5, label: "LinkedIn Posts" },
+  "LinkedIn Company": { weight: 5, label: "LinkedIn Company" },
+  "LinkedIn Jobs": { weight: 5, label: "LinkedIn Jobs" },
+  "Amazon Products": { weight: 8, label: "Amazon Products" },
+  "Amazon Reviews": { weight: 8, label: "Amazon Reviews" },
+  "LinkedIn Profiles": { weight: 12, label: "LinkedIn Profiles" },
+};
+
+// Eligibility: task_count > 10 AND avg_score > 60
+const MIN_TASKS = 10;
+const MIN_AVG_SCORE = 60;
+
 function estimateEarnings(avgScore: number, taskCount: number): string {
-  if (taskCount < 80 || avgScore < 60) return "—";
-  const weight = Math.pow(avgScore, 2) * taskCount;
-  return formatNumber(Math.round(weight / 100));
+  if (taskCount <= MIN_TASKS || avgScore <= MIN_AVG_SCORE) return "—";
+  // Simplified estimate without dataset weights (would need per-dataset breakdown)
+  const weight = taskCount * (avgScore / 100);
+  return formatNumber(Math.round(weight * 100));
 }
 
 export default function RewardsPage() {
@@ -59,7 +83,7 @@ export default function RewardsPage() {
   const isOnline = profile?.miner?.online ?? false;
 
   const curMiner = profile?.current_epoch?.miner;
-  const isQualifiedNow = curMiner ? curMiner.task_count >= 80 && curMiner.avg_score >= 60 : false;
+  const isQualifiedNow = curMiner ? curMiner.task_count > MIN_TASKS && curMiner.avg_score > MIN_AVG_SCORE : false;
 
   return (
     <>
@@ -70,6 +94,73 @@ export default function RewardsPage() {
             <span className="text-xs font-mono uppercase tracking-wider text-text-dim">Account</span>
             <h1 className="text-3xl font-bold mt-2 tracking-tight">Rewards Lookup</h1>
             <p className="text-text-muted text-sm mt-2">Enter your agent&apos;s wallet address to view mining rewards and epoch history.</p>
+          </div>
+
+          {/* aMINE Emission Rules */}
+          <div className="border border-border rounded-lg overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-border bg-bg-surface">
+              <h2 className="text-sm font-semibold">aMINE Emission Rules</h2>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Key Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Supply", value: "10B aMINE" },
+                  { label: "Daily Emission (Y1)", value: formatNumber(DAILY_EMISSION) },
+                  { label: "Miner Pool (70%)", value: formatNumber(DAILY_MINER_EMISSION) },
+                  { label: "Validator Pool (30%)", value: formatNumber(DAILY_VALIDATOR_EMISSION) },
+                ].map((s) => (
+                  <div key={s.label} className="bg-bg-surface/50 border border-border-subtle rounded-lg p-4">
+                    <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-1">{s.label}</div>
+                    <div className="font-mono text-sm font-semibold">{s.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Eligibility */}
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-text-dim mb-3">Eligibility Requirements</h3>
+                <div className="flex flex-wrap gap-3">
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-bg-surface border border-border-subtle rounded-full text-xs font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                    Tasks &gt; {MIN_TASKS}
+                  </span>
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-bg-surface border border-border-subtle rounded-full text-xs font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+                    Avg Score &gt; {MIN_AVG_SCORE}
+                  </span>
+                </div>
+              </div>
+
+              {/* Dataset Weights */}
+              <div>
+                <h3 className="text-xs font-mono uppercase tracking-wider text-text-dim mb-3">Dataset Weights (Miners)</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {Object.entries(DATASET_WEIGHTS).map(([key, { weight, label }]) => (
+                    <div key={key} className="flex items-center justify-between px-3 py-2 bg-bg-surface border border-border-subtle rounded-lg">
+                      <span className="text-xs text-text-muted truncate">{label}</span>
+                      <span className={`text-xs font-mono font-semibold ml-2 ${weight >= 8 ? "text-success" : weight >= 5 ? "text-accent" : "text-text-dim"}`}>
+                        {weight}x
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Formula */}
+              <div className="bg-bg-surface/50 border border-border-subtle rounded-lg p-4">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">Reward Formula</h3>
+                <code className="text-xs font-mono text-text-muted block">
+                  P = Σ(dataset_weight × tasks) × (avg_score / 100)
+                </code>
+                <code className="text-xs font-mono text-text-muted block mt-1">
+                  Reward = (P / Σ all_miners_P) × Daily_Miner_Pool
+                </code>
+                <p className="text-xs text-text-dim mt-3">
+                  AWP tokens are distributed using the same ratio from the AWP emission pool.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Search */}
@@ -144,7 +235,7 @@ export default function RewardsPage() {
                       { label: "Tasks", value: String(curMiner.task_count) },
                       { label: "Avg Score", value: curMiner.avg_score.toFixed(1) },
                       { label: "Sampled", value: String(curMiner.sampled_score_count) },
-                      { label: "Qualified", value: isQualifiedNow ? "Yes" : `${curMiner.task_count}/80` },
+                      { label: "Qualified", value: isQualifiedNow ? "Yes" : `${curMiner.task_count}/${MIN_TASKS + 1}` },
                       { label: "Est. Earnings", value: isQualifiedNow ? `~${estimateEarnings(curMiner.avg_score, curMiner.task_count)} $MINE` : "—" },
                     ].map((s) => (
                       <div key={s.label} className="bg-bg-surface/80 p-5">
@@ -155,8 +246,8 @@ export default function RewardsPage() {
                   </div>
                   {!isQualifiedNow && curMiner.task_count > 0 && (
                     <div className="px-6 py-3 text-xs font-mono text-text-muted border-t border-accent/10">
-                      Need {Math.max(0, 80 - curMiner.task_count)} more tasks
-                      {curMiner.avg_score < 60 && curMiner.avg_score > 0 ? ` and avg score >= 60 (currently ${curMiner.avg_score.toFixed(1)})` : ""}
+                      Need {Math.max(0, MIN_TASKS + 1 - curMiner.task_count)} more tasks
+                      {curMiner.avg_score <= MIN_AVG_SCORE && curMiner.avg_score > 0 ? ` and avg score > ${MIN_AVG_SCORE} (currently ${curMiner.avg_score.toFixed(1)})` : ""}
                       {" "}to qualify
                     </div>
                   )}
