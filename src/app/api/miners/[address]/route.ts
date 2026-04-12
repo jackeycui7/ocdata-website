@@ -8,16 +8,19 @@ export async function GET(
 ) {
   const address = params.address.toLowerCase();
 
-  const [profileRes, historyRes] = await Promise.all([
+  const [profileRes, minerHistoryRes, validatorHistoryRes] = await Promise.all([
     fetch(`${PLATFORM_API}/api/mining/v1/profiles/${address}`, { cache: "no-store" }),
     fetch(`${PLATFORM_API}/api/mining/v1/profiles/miners/${address}/epochs`, { cache: "no-store" }),
+    fetch(`${PLATFORM_API}/api/mining/v1/profiles/validators/${address}/epochs`, { cache: "no-store" }),
   ]);
 
   const profile = profileRes.ok ? await profileRes.json() : null;
-  const history = historyRes.ok ? await historyRes.json() : null;
+  const minerHistory = minerHistoryRes.ok ? await minerHistoryRes.json() : null;
+  const validatorHistory = validatorHistoryRes.ok ? await validatorHistoryRes.json() : null;
 
   return NextResponse.json({
     profile: profile?.success ? profile.data : null,
-    history: history?.success ? history.data : [],
+    minerHistory: minerHistory?.success ? minerHistory.data : [],
+    validatorHistory: validatorHistory?.success ? validatorHistory.data : [],
   });
 }
