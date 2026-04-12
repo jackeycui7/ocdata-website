@@ -9,7 +9,7 @@ import TokenInfo from "@/components/landing/TokenInfo";
 import GetStartedCTA from "@/components/landing/GetStartedCTA";
 import * as api from "@/lib/api";
 
-export const revalidate = 60;
+export const revalidate = 10;
 
 export default async function Home() {
   const apiDatasets = await api.fetchDatasets();

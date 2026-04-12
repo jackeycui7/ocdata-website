@@ -20,7 +20,7 @@ async function fetchMinerProfile(minerId: string): Promise<{
 } | null> {
   try {
     const res = await fetch(`${PLATFORM_API}/api/mining/v1/profiles/${minerId}`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 10 },
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -63,7 +63,7 @@ async function fetchProfilesInBatches(minerIds: string[], batchSize = 20): Promi
 export async function GET() {
   // Fetch all miners
   const res = await fetch(`${PLATFORM_API}/api/mining/v1/miners`, {
-    next: { revalidate: 30 },
+    next: { revalidate: 10 },
   });
 
   if (!res.ok) {

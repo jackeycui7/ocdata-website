@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import ValidatorTrendChart from "@/components/charts/ValidatorTrendChart";
 import { notFound } from "next/navigation";
 
-export const revalidate = 30;
+export const revalidate = 10;
 
 function formatStake(wei: string): string {
   if (!wei || wei === "0") return "0 AWP";

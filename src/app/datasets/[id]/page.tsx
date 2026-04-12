@@ -4,7 +4,7 @@ import Footer from "@/components/layout/Footer";
 import DatasetDetailClient from "@/components/DatasetDetailClient";
 import { notFound } from "next/navigation";
 
-export const revalidate = 30;
+export const revalidate = 10;
 
 export default async function DatasetDetailPage({ params }: { params: { id: string } }) {
   const ds = await loadDataset(params.id);

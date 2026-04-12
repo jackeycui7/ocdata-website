@@ -21,7 +21,7 @@ async function fetchValidatorProfile(validatorId: string): Promise<{
 } | null> {
   try {
     const res = await fetch(`${PLATFORM_API}/api/mining/v1/profiles/${validatorId}`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 10 },
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -64,7 +64,7 @@ async function fetchProfilesInBatches(validatorIds: string[], batchSize = 10): P
 export async function GET() {
   // Fetch all online validators
   const res = await fetch(`${PLATFORM_API}/api/mining/v1/validators/online`, {
-    next: { revalidate: 30 },
+    next: { revalidate: 10 },
   });
 
   if (!res.ok) {

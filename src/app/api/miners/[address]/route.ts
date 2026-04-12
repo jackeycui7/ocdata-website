@@ -9,8 +9,8 @@ export async function GET(
   const { address } = params;
 
   const [profileRes, historyRes] = await Promise.all([
-    fetch(`${PLATFORM_API}/api/mining/v1/profiles/${address}`, { next: { revalidate: 30 } }),
-    fetch(`${PLATFORM_API}/api/mining/v1/profiles/miners/${address}/epochs`, { next: { revalidate: 30 } }),
+    fetch(`${PLATFORM_API}/api/mining/v1/profiles/${address}`, { next: { revalidate: 10 } }),
+    fetch(`${PLATFORM_API}/api/mining/v1/profiles/miners/${address}/epochs`, { next: { revalidate: 10 } }),
   ]);
 
   const profile = profileRes.ok ? await profileRes.json() : null;
