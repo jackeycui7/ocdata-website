@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
+import { shortenAddress, TIERS, getTier } from "@/lib/mock";
 import { loadMiners } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -27,7 +27,7 @@ export default async function MinersPage() {
               { label: "Total Miners", value: String(miners.length) },
               { label: "Online", value: String(onlineCount) },
               { label: "Avg Credit", value: String(avgCredit) },
-              { label: "Qualified (Epoch)", value: String(miners.filter((m) => m.taskCount >= 80 && m.avgScore >= 60).length) },
+              { label: "Qualified (Epoch)", value: String(miners.filter((m) => m.taskCount > 10 && m.avgScore > 60).length) },
             ].map((s) => (
               <div key={s.label} className="bg-bg-surface p-5">
                 <div className="text-xs font-mono uppercase tracking-wider text-text-dim mb-2">{s.label}</div>
@@ -53,7 +53,7 @@ export default async function MinersPage() {
                     <th className="text-left px-4 py-3">Tier</th>
                     <th className="text-right px-4 py-3">Submissions</th>
                     <th className="text-right px-4 py-3">Avg Score</th>
-                    <th className="text-right px-4 py-3">Reward</th>
+                    <th className="text-right px-4 py-3">Total Rewards</th>
                     <th className="text-center px-6 py-3">Status</th>
                   </tr>
                 </thead>
@@ -80,7 +80,11 @@ export default async function MinersPage() {
                         <td className={`px-4 py-3 text-xs font-mono ${t.color}`}>{t.label}</td>
                         <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{m.taskCount.toLocaleString()}</td>
                         <td className="px-4 py-3 font-mono text-xs tabular-nums text-right font-medium">{m.avgScore.toFixed(1)}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{formatNumber(m.reward)}</td>
+                        <td className="px-4 py-3 text-right">
+                          <Link href={`/miners/${m.address}`} className="text-xs font-mono text-accent hover:underline">
+                            View →
+                          </Link>
+                        </td>
                         <td className="px-6 py-3 text-center">
                           <span className={`inline-block w-2 h-2 rounded-full ${m.online ? "bg-success" : "bg-text-dim"}`} />
                         </td>
