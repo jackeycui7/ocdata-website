@@ -11,6 +11,9 @@ export const revalidate = 30;
 const MIN_TASKS = 10;
 const MIN_AVG_SCORE = 60;
 
+// Test epochs without rewards
+const TEST_EPOCHS = ["2026-04-06"];
+
 function estimateEarnings(avgScore: number, taskCount: number): string {
   if (taskCount <= MIN_TASKS || avgScore <= MIN_AVG_SCORE) return "—";
   // Simplified estimate without dataset weights
@@ -145,19 +148,31 @@ export default async function MinerDetailPage({ params }: { params: { address: s
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-subtle">
-                    {epochHistory.map((eh) => (
-                      <tr key={eh.epochId} className="hover:bg-bg-surface transition-colors">
-                        <td className="px-6 py-3 font-mono tabular-nums">{eh.epochId}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{eh.taskCount}</td>
-                        <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{eh.avgScore.toFixed(1)}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`text-xs font-mono ${eh.qualified ? "text-success" : "text-danger"}`}>
-                            {eh.qualified ? "yes" : "no"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">{eh.qualified ? `${formatNumber(eh.rewardAmount)} $MINE` : "—"}</td>
-                      </tr>
-                    ))}
+                    {epochHistory.map((eh) => {
+                      const isTestEpoch = TEST_EPOCHS.includes(eh.epochId);
+                      return (
+                        <tr key={eh.epochId} className={`hover:bg-bg-surface transition-colors ${isTestEpoch ? "opacity-50" : ""}`}>
+                          <td className="px-6 py-3 font-mono tabular-nums">
+                            {eh.epochId}
+                            {isTestEpoch && <span className="ml-2 text-xs text-warning">(Test)</span>}
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">{eh.taskCount}</td>
+                          <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{eh.avgScore.toFixed(1)}</td>
+                          <td className="px-4 py-3 text-center">
+                            {isTestEpoch ? (
+                              <span className="text-xs font-mono text-text-dim">—</span>
+                            ) : (
+                              <span className={`text-xs font-mono ${eh.qualified ? "text-success" : "text-danger"}`}>
+                                {eh.qualified ? "yes" : "no"}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">
+                            {isTestEpoch ? "—" : (eh.qualified ? `${formatNumber(eh.rewardAmount)} $MINE` : "—")}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

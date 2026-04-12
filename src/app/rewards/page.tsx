@@ -33,6 +33,10 @@ const DATASET_WEIGHTS: Record<string, { weight: number; label: string }> = {
 const MIN_TASKS = 10;
 const MIN_AVG_SCORE = 60;
 
+// Test epochs without rewards
+const TEST_EPOCHS = ["2026-04-06"];
+const REWARDS_START_DATE = "2026-04-07";
+
 function estimateEarnings(avgScore: number, taskCount: number): string {
   if (taskCount <= MIN_TASKS || avgScore <= MIN_AVG_SCORE) return "—";
   // Simplified estimate without dataset weights (would need per-dataset breakdown)
@@ -103,9 +107,10 @@ export default function RewardsPage() {
             </div>
             <div className="p-6 space-y-6">
               {/* Key Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {[
                   { label: "Total Supply", value: "10B aMINE" },
+                  { label: "Rewards Start", value: REWARDS_START_DATE },
                   { label: "Daily Emission (Y1)", value: formatNumber(DAILY_EMISSION) },
                   { label: "Miner Pool (70%)", value: formatNumber(DAILY_MINER_EMISSION) },
                   { label: "Validator Pool (30%)", value: formatNumber(DAILY_VALIDATOR_EMISSION) },
@@ -276,21 +281,31 @@ export default function RewardsPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border-subtle">
-                        {history.map((ep) => (
-                          <tr key={ep.epoch_id} className="hover:bg-bg-surface transition-colors">
-                            <td className="px-6 py-3 font-mono tabular-nums text-text-muted">{ep.epoch_id}</td>
-                            <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{ep.task_count.toLocaleString()}</td>
-                            <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{ep.avg_score.toFixed(1)}</td>
-                            <td className="px-4 py-3 text-center">
-                              <span className={`text-xs font-mono ${ep.qualified ? "text-success" : "text-danger"}`}>
-                                {ep.qualified ? "yes" : "no"}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">
-                              {ep.reward_amount > 0 ? formatNumber(ep.reward_amount) + " $MINE" : "—"}
-                            </td>
-                          </tr>
-                        ))}
+                        {history.map((ep) => {
+                          const isTestEpoch = TEST_EPOCHS.includes(ep.epoch_id);
+                          return (
+                            <tr key={ep.epoch_id} className={`hover:bg-bg-surface transition-colors ${isTestEpoch ? "opacity-50" : ""}`}>
+                              <td className="px-6 py-3 font-mono tabular-nums text-text-muted">
+                                {ep.epoch_id}
+                                {isTestEpoch && <span className="ml-2 text-xs text-warning">(Test)</span>}
+                              </td>
+                              <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{ep.task_count.toLocaleString()}</td>
+                              <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">{ep.avg_score.toFixed(1)}</td>
+                              <td className="px-4 py-3 text-center">
+                                {isTestEpoch ? (
+                                  <span className="text-xs font-mono text-text-dim">—</span>
+                                ) : (
+                                  <span className={`text-xs font-mono ${ep.qualified ? "text-success" : "text-danger"}`}>
+                                    {ep.qualified ? "yes" : "no"}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-3 font-mono text-xs tabular-nums text-right">
+                                {isTestEpoch ? "—" : (ep.reward_amount > 0 ? formatNumber(ep.reward_amount) + " $MINE" : "—")}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
