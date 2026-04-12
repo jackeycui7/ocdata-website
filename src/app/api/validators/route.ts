@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 
 const PLATFORM_API = process.env.NEXT_PUBLIC_PLATFORM_API || "https://api.minework.net";
 
+// Test epochs without rewards - exclude from calculations
+const TEST_EPOCHS = ["2026-04-06"];
+
 interface ValidatorProfile {
   validator_id: string;
   credit: number;
@@ -13,70 +16,61 @@ interface ValidatorProfile {
   avg_accuracy: number;
 }
 
-// Fetch profile for a single validator
-async function fetchValidatorProfile(validatorId: string): Promise<{
-  total_rewards: number;
-  total_evals: number;
-  avg_accuracy: number;
-} | null> {
+interface EpochSettlement {
+  epoch_id: string;
+  validators: Array<{
+    validator_id: string;
+    eval_count: number;
+    accuracy: number;
+    qualified: boolean;
+    reward_amount: number;
+  }>;
+}
+
+// Fetch epochs list
+async function fetchEpochs(): Promise<Array<{ id: string; epoch_id: string; status: string }>> {
   try {
-    const res = await fetch(`${PLATFORM_API}/api/mining/v1/profiles/${validatorId}`, {
+    const res = await fetch(`${PLATFORM_API}/api/core/v1/epochs?page=1&page_size=50`, {
+      next: { revalidate: 10 },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.success ? json.data : [];
+  } catch {
+    return [];
+  }
+}
+
+// Fetch settlement for a single epoch
+async function fetchSettlement(epochId: string): Promise<EpochSettlement | null> {
+  try {
+    const res = await fetch(`${PLATFORM_API}/api/mining/v1/epochs/${epochId}/settlement-results`, {
       next: { revalidate: 10 },
     });
     if (!res.ok) return null;
     const json = await res.json();
-    if (json.success && json.data?.validator_summary) {
-      return {
-        total_rewards: json.data.validator_summary.total_rewards ?? 0,
-        total_evals: json.data.validator_summary.total_evals ?? 0,
-        avg_accuracy: json.data.validator_summary.avg_accuracy ?? 0,
-      };
-    }
+    return json.success ? json.data : null;
   } catch {
-    // ignore
+    return null;
   }
-  return null;
-}
-
-// Process in batches
-async function fetchProfilesInBatches(validatorIds: string[], batchSize = 10): Promise<Map<string, { total_rewards: number; total_evals: number; avg_accuracy: number }>> {
-  const results = new Map<string, { total_rewards: number; total_evals: number; avg_accuracy: number }>();
-
-  for (let i = 0; i < validatorIds.length; i += batchSize) {
-    const batch = validatorIds.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(async (id) => {
-        const profile = await fetchValidatorProfile(id);
-        return { id, profile };
-      })
-    );
-
-    for (const { id, profile } of batchResults) {
-      if (profile) {
-        results.set(id, profile);
-      }
-    }
-  }
-
-  return results;
 }
 
 export async function GET() {
   // Fetch all online validators
-  const res = await fetch(`${PLATFORM_API}/api/mining/v1/validators/online`, {
+  const validatorsRes = await fetch(`${PLATFORM_API}/api/mining/v1/validators/online`, {
     next: { revalidate: 10 },
   });
 
-  if (!res.ok) {
-    return NextResponse.json({ success: false, data: [] }, { status: res.status });
+  if (!validatorsRes.ok) {
+    return NextResponse.json({ success: false, data: [] }, { status: validatorsRes.status });
   }
 
-  const json = await res.json();
-  if (!json.success || !json.data) {
+  const validatorsJson = await validatorsRes.json();
+  if (!validatorsJson.success || !validatorsJson.data) {
     return NextResponse.json({ success: false, data: [] });
   }
 
-  const validators = json.data as Array<{
+  const validators = validatorsJson.data as Array<{
     validator_id: string;
     client: string;
     online: boolean;
@@ -84,18 +78,44 @@ export async function GET() {
     eligible: boolean;
   }>;
 
-  // Fetch all profiles in batches
-  const validatorIds = validators.map((v) => v.validator_id);
-  const profiles = await fetchProfilesInBatches(validatorIds);
+  // Fetch epochs and get completed ones (excluding test epochs)
+  const epochs = await fetchEpochs();
+  const completedEpochs = epochs.filter(
+    (e) => e.status === "completed" && !TEST_EPOCHS.includes(e.epoch_id)
+  );
 
-  // Merge and sort by total_rewards descending
+  // Fetch all settlements in parallel
+  const settlements = await Promise.all(
+    completedEpochs.map((e) => fetchSettlement(e.id))
+  );
+
+  // Aggregate validator stats from settlements
+  const validatorStats = new Map<string, { total_rewards: number; total_evals: number; accuracies: number[] }>();
+
+  for (const settlement of settlements) {
+    if (!settlement?.validators) continue;
+    for (const v of settlement.validators) {
+      const existing = validatorStats.get(v.validator_id) || { total_rewards: 0, total_evals: 0, accuracies: [] };
+      existing.total_rewards += v.reward_amount;
+      existing.total_evals += v.eval_count;
+      if (v.accuracy > 0) {
+        existing.accuracies.push(v.accuracy);
+      }
+      validatorStats.set(v.validator_id, existing);
+    }
+  }
+
+  // Merge validators with aggregated stats
   const validatorsWithRewards: ValidatorProfile[] = validators.map((v) => {
-    const profile = profiles.get(v.validator_id);
+    const stats = validatorStats.get(v.validator_id);
+    const avgAccuracy = stats && stats.accuracies.length > 0
+      ? stats.accuracies.reduce((a, b) => a + b, 0) / stats.accuracies.length
+      : 0;
     return {
       ...v,
-      total_rewards: profile?.total_rewards ?? 0,
-      total_evals: profile?.total_evals ?? 0,
-      avg_accuracy: profile?.avg_accuracy ?? 0,
+      total_rewards: stats?.total_rewards ?? 0,
+      total_evals: stats?.total_evals ?? 0,
+      avg_accuracy: avgAccuracy,
     };
   });
 
