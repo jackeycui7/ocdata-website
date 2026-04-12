@@ -13,6 +13,9 @@ const STATUS_STYLE: Record<string, string> = {
   failed: "text-danger",
 };
 
+// Test epochs without rewards
+const TEST_EPOCHS = ["2026-04-06"];
+
 export default async function EpochDetailPage({ params }: { params: { id: string } }) {
   const epochs = await loadEpochs();
   const epoch = epochs.find((e) => e.id === params.id);
@@ -77,7 +80,18 @@ export default async function EpochDetailPage({ params }: { params: { id: string
             <span className={`text-xs font-mono uppercase tracking-wider ${STATUS_STYLE[epoch.status] || "text-text-dim"}`}>
               {epoch.status}
             </span>
+            {TEST_EPOCHS.includes(epoch.startTime.split("T")[0]) && (
+              <span className="text-xs font-mono text-warning bg-warning/10 px-2 py-1 rounded">Test Epoch</span>
+            )}
           </div>
+
+          {TEST_EPOCHS.includes(epoch.startTime.split("T")[0]) && (
+            <div className="mb-10 p-4 border border-warning/30 bg-warning/5 rounded-lg">
+              <p className="text-sm text-warning">
+                This is a test epoch. No rewards were distributed during the testing phase.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
             {[

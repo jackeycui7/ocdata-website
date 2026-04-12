@@ -11,6 +11,9 @@ const STATUS_STYLE: Record<string, string> = {
   failed: "text-danger",
 };
 
+// Test epochs without rewards
+const TEST_EPOCHS = ["2026-04-06"];
+
 export default async function EpochsPage() {
   const epochs = await loadEpochs();
 
@@ -54,6 +57,9 @@ export default async function EpochsPage() {
                         <span className={`text-xs font-mono uppercase tracking-wider ${STATUS_STYLE[ep.status] || "text-text-dim"}`}>
                           {ep.status}
                         </span>
+                        {TEST_EPOCHS.includes(ep.startTime?.split("T")[0] ?? "") && (
+                          <span className="ml-2 text-xs font-mono text-warning">(Test)</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">
                         {ep.summary.total}
