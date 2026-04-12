@@ -84,9 +84,9 @@ export async function GET() {
     (e) => e.status === "completed" && !TEST_EPOCHS.includes(e.epoch_id)
   );
 
-  // Fetch all settlements in parallel
+  // Fetch all settlements in parallel (use epoch_id, not id)
   const settlements = await Promise.all(
-    completedEpochs.map((e) => fetchSettlement(e.id))
+    completedEpochs.map((e) => fetchSettlement(e.epoch_id))
   );
 
   // Aggregate validator stats from settlements
