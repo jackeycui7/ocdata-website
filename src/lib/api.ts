@@ -198,11 +198,11 @@ export async function fetchAllMiners(): Promise<ApiMinerPublic[] | null> {
 }
 
 export async function fetchMinerPublic(address: string): Promise<ApiMinerPublic | null> {
-  return apiFetch<ApiMinerPublic>(`/api/mining/v1/profiles/miners/${address}`);
+  return apiFetch<ApiMinerPublic>(`/api/mining/v1/profiles/miners/${address.toLowerCase()}`);
 }
 
 export async function fetchMinerEpochHistory(address: string): Promise<ApiMinerEpochHistory[] | null> {
-  return apiFetch<ApiMinerEpochHistory[]>(`/api/mining/v1/profiles/miners/${address}/epochs`);
+  return apiFetch<ApiMinerEpochHistory[]>(`/api/mining/v1/profiles/miners/${address.toLowerCase()}/epochs`);
 }
 
 export interface ApiValidatorEpochHistory {
@@ -217,7 +217,7 @@ export interface ApiValidatorEpochHistory {
 }
 
 export async function fetchValidatorEpochHistory(address: string): Promise<ApiValidatorEpochHistory[] | null> {
-  return apiFetch<ApiValidatorEpochHistory[]>(`/api/mining/v1/profiles/validators/${address}/epochs`);
+  return apiFetch<ApiValidatorEpochHistory[]>(`/api/mining/v1/profiles/validators/${address.toLowerCase()}/epochs`);
 }
 
 // --- Unified Address Profile (includes current epoch real-time stats) ---
@@ -274,7 +274,7 @@ export interface ApiAddressProfile {
 }
 
 export async function fetchAddressProfile(address: string): Promise<ApiAddressProfile | null> {
-  return apiFetch<ApiAddressProfile>(`/api/mining/v1/profiles/${address}`);
+  return apiFetch<ApiAddressProfile>(`/api/mining/v1/profiles/${address.toLowerCase()}`);
 }
 
 export async function fetchValidatorsOnline(): Promise<ApiValidatorOnline[] | null> {

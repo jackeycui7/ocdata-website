@@ -6,7 +6,7 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: { address: string } }
 ) {
-  const { address } = params;
+  const address = params.address.toLowerCase();
 
   const [profileRes, historyRes] = await Promise.all([
     fetch(`${PLATFORM_API}/api/mining/v1/profiles/${address}`, { cache: "no-store" }),
