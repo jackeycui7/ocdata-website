@@ -36,7 +36,7 @@ export default async function EpochDetailPage({ params }: { params: { id: string
     address,
     taskCount: s.task_count,
     avgScore: s.avg_score,
-    qualified: s.task_count >= 80 && s.avg_score >= 60,
+    qualified: s.task_count > 10 && s.avg_score > 60,
     confirmed: 0,
     rejected: 0,
     reward: 0,
@@ -55,7 +55,7 @@ export default async function EpochDetailPage({ params }: { params: { id: string
     evalCount: v.eval_count,
     accuracy: v.accuracy,
     peerAccuracy: v.peer_review_accuracy,
-    qualified: v.accuracy >= 60,
+    qualified: v.eval_count > 10 && v.accuracy > 60,
     reward: 0,
     penalty: "",
   })) : []);

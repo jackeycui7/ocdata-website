@@ -23,7 +23,7 @@ export default async function EpochsPage() {
             <span className="text-xs font-mono uppercase tracking-wider text-text-dim">History</span>
             <h1 className="text-3xl font-bold mt-2 tracking-tight">Epochs</h1>
             <p className="text-text-muted text-sm mt-2">
-              Each epoch lasts 1 day. Settlement occurs at UTC 00:00.
+              Each epoch lasts 1 day. Settlement occurs at UTC 12:00.
             </p>
           </div>
 
