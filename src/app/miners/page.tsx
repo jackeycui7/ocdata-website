@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
-import type { ApiMinerPublic, ApiAddressProfile } from "@/lib/api";
+import type { ApiMinerPublic } from "@/lib/api";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 const PAGE_SIZE = 20;
-const PLATFORM_API = process.env.NEXT_PUBLIC_PLATFORM_API || "https://api.minework.net";
 
 interface MinerWithReward extends ApiMinerPublic {
   totalRewards?: number;
@@ -26,7 +25,7 @@ export default function MinersPage() {
   useEffect(() => {
     async function loadMiners() {
       try {
-        const res = await fetch(`${PLATFORM_API}/api/mining/v1/miners`);
+        const res = await fetch("/api/miners");
         const json = await res.json();
         if (json.success && json.data) {
           setMiners(json.data);
@@ -64,21 +63,18 @@ export default function MinersPage() {
       )
     );
 
-    // Fetch profiles in parallel
+    // Fetch profiles in parallel via local API route
     Promise.all(
       minersNeedingData.map(async (miner) => {
         try {
-          const res = await fetch(
-            `${PLATFORM_API}/api/mining/v1/profiles/${miner.miner_id}`
-          );
+          const res = await fetch(`/api/miners/${miner.miner_id}`);
           const json = await res.json();
-          if (json.success && json.data) {
-            const profile: ApiAddressProfile = json.data;
+          if (json.profile) {
             return {
               miner_id: miner.miner_id,
-              totalRewards: profile.miner_summary?.total_rewards ?? 0,
-              totalTasks: profile.miner_summary?.total_tasks ?? 0,
-              avgScore: profile.miner_summary?.avg_score ?? 0,
+              totalRewards: json.profile.miner_summary?.total_rewards ?? 0,
+              totalTasks: json.profile.miner_summary?.total_tasks ?? 0,
+              avgScore: json.profile.miner_summary?.avg_score ?? 0,
             };
           }
         } catch {
