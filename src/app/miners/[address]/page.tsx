@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import MinerTrendChart from "@/components/charts/MinerTrendChart";
 import { notFound } from "next/navigation";
 
-export const revalidate = 10;
+export const revalidate = 0;
 
 // Eligibility: task_count > 10 AND avg_score > 60
 const MIN_TASKS = 10;

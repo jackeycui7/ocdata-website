@@ -3,7 +3,7 @@ import { loadEpochs } from "@/lib/data";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-export const revalidate = 10;
+export const revalidate = 0;
 
 const STATUS_STYLE: Record<string, string> = {
   open: "text-success",

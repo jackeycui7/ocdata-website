@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import EpochDetailClient from "@/components/EpochDetailClient";
 import { notFound } from "next/navigation";
 
-export const revalidate = 10;
+export const revalidate = 0;
 
 const STATUS_STYLE: Record<string, string> = {
   open: "text-success",

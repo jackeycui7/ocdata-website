@@ -17,7 +17,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T | nul
         "Content-Type": "application/json",
         ...options?.headers,
       },
-      next: { revalidate: 10 },
+      cache: "no-store",
     });
     if (!res.ok) return null;
     const json: ApiResponse<T> = await res.json();

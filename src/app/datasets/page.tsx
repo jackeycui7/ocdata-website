@@ -4,7 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import DatasetsClient from "@/components/DatasetsClient";
 
-export const revalidate = 10;
+export const revalidate = 0;
 
 export default async function DatasetsPage() {
   const datasets = await loadDatasets();

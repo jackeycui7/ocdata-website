@@ -6,7 +6,7 @@ import EpochEmissionChart from "@/components/charts/EpochEmissionChart";
 import CreditDistChart from "@/components/charts/CreditDistChart";
 import AutoRefresh from "@/components/AutoRefresh";
 
-export const revalidate = 10;
+export const revalidate = 0;
 
 function relativeTime(dateStr: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);

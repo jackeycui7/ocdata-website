@@ -31,7 +31,7 @@ interface EpochSettlement {
 async function fetchEpochs(): Promise<Array<{ id: string; epoch_id: string; status: string }>> {
   try {
     const res = await fetch(`${PLATFORM_API}/api/core/v1/epochs?page=1&page_size=50`, {
-      next: { revalidate: 10 },
+      cache: "no-store",
     });
     if (!res.ok) return [];
     const json = await res.json();
@@ -45,7 +45,7 @@ async function fetchEpochs(): Promise<Array<{ id: string; epoch_id: string; stat
 async function fetchSettlement(epochId: string): Promise<EpochSettlement | null> {
   try {
     const res = await fetch(`${PLATFORM_API}/api/mining/v1/epochs/${epochId}/settlement-results`, {
-      next: { revalidate: 10 },
+      cache: "no-store",
     });
     if (!res.ok) return null;
     const json = await res.json();
@@ -58,7 +58,7 @@ async function fetchSettlement(epochId: string): Promise<EpochSettlement | null>
 export async function GET() {
   // Fetch all online validators
   const validatorsRes = await fetch(`${PLATFORM_API}/api/mining/v1/validators/online`, {
-    next: { revalidate: 10 },
+    cache: "no-store",
   });
 
   if (!validatorsRes.ok) {
