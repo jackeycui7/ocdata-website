@@ -3,17 +3,19 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { shortenAddress, TIERS, getTier, formatNumber } from "@/lib/mock";
-import type { ApiMinerPublic } from "@/lib/api";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
 const PAGE_SIZE = 20;
 
-interface MinerWithReward extends ApiMinerPublic {
-  totalRewards?: number;
-  totalTasks?: number;
-  avgScore?: number;
-  loading?: boolean;
+interface MinerWithReward {
+  miner_id: string;
+  credit: number;
+  credit_tier: string;
+  online: boolean;
+  total_rewards: number;
+  total_tasks: number;
+  avg_score: number;
 }
 
 export default function MinersPage() {
@@ -21,7 +23,7 @@ export default function MinersPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
-  // Load all miners on mount
+  // Load all miners (sorted by reward from API)
   useEffect(() => {
     async function loadMiners() {
       try {
@@ -38,73 +40,6 @@ export default function MinersPage() {
     }
     loadMiners();
   }, []);
-
-  // Load rewards for current page miners
-  useEffect(() => {
-    if (miners.length === 0) return;
-
-    const start = (page - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    const pageMiners = miners.slice(start, end);
-
-    // Check which miners need reward data
-    const minersNeedingData = pageMiners.filter(
-      (m) => m.totalRewards === undefined && !m.loading
-    );
-
-    if (minersNeedingData.length === 0) return;
-
-    // Mark as loading
-    setMiners((prev) =>
-      prev.map((m) =>
-        minersNeedingData.some((n) => n.miner_id === m.miner_id)
-          ? { ...m, loading: true }
-          : m
-      )
-    );
-
-    // Fetch profiles in parallel via local API route
-    Promise.all(
-      minersNeedingData.map(async (miner) => {
-        try {
-          const res = await fetch(`/api/miners/${miner.miner_id}`);
-          const json = await res.json();
-          if (json.profile) {
-            return {
-              miner_id: miner.miner_id,
-              totalRewards: json.profile.miner_summary?.total_rewards ?? 0,
-              totalTasks: json.profile.miner_summary?.total_tasks ?? 0,
-              avgScore: json.profile.miner_summary?.avg_score ?? 0,
-            };
-          }
-        } catch {
-          // ignore
-        }
-        return {
-          miner_id: miner.miner_id,
-          totalRewards: 0,
-          totalTasks: 0,
-          avgScore: 0,
-        };
-      })
-    ).then((results) => {
-      setMiners((prev) =>
-        prev.map((m) => {
-          const result = results.find((r) => r.miner_id === m.miner_id);
-          if (result) {
-            return {
-              ...m,
-              totalRewards: result.totalRewards,
-              totalTasks: result.totalTasks,
-              avgScore: result.avgScore,
-              loading: false,
-            };
-          }
-          return m;
-        })
-      );
-    });
-  }, [miners.length, page]);
 
   const totalPages = Math.ceil(miners.length / PAGE_SIZE);
   const start = (page - 1) * PAGE_SIZE;
@@ -216,36 +151,18 @@ export default function MinersPage() {
                               {t.label}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs text-text-muted tabular-nums text-right">
-                              {m.loading ? (
-                                <span className="text-text-dim">...</span>
-                              ) : m.totalTasks !== undefined ? (
-                                m.totalTasks.toLocaleString()
-                              ) : (
-                                "—"
-                              )}
+                              {m.total_tasks.toLocaleString()}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs tabular-nums text-right font-medium">
-                              {m.loading ? (
-                                <span className="text-text-dim">...</span>
-                              ) : m.avgScore !== undefined ? (
-                                m.avgScore.toFixed(1)
-                              ) : (
-                                "—"
-                              )}
+                              {m.avg_score.toFixed(1)}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs tabular-nums text-right">
-                              {m.loading ? (
-                                <span className="text-text-dim">...</span>
-                              ) : m.totalRewards !== undefined ? (
-                                m.totalRewards > 0 ? (
-                                  <span className="text-success">
-                                    {formatNumber(m.totalRewards)}
-                                  </span>
-                                ) : (
-                                  "0"
-                                )
+                              {m.total_rewards > 0 ? (
+                                <span className="text-success">
+                                  {formatNumber(m.total_rewards)}
+                                </span>
                               ) : (
-                                "—"
+                                "0"
                               )}
                             </td>
                             <td className="px-6 py-3 text-center">
